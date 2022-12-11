@@ -1,37 +1,51 @@
 #include <Windows.h>
 #include <iostream>
-#include "Serial.hpp"
+#include <cstdio>
 #include <chrono>
+
+#include "Serial.hpp"
+#include "InputData.hpp"
+#include "Game.hpp"
 
 int main()
 {
-	SerialPort port = SerialPort();
+	int portNum;
+	std::cout << "enter Arduino port number:\n";
+	std::cin >> portNum;
+
+	char portName[16] = { 0 };
+	sprintf_s(portName, R"(\\.\COM%i)", portNum);
+
+	SerialPort port = SerialPort(portName);
 
 	if (!port.open) {
-		return 1;
+		std::cerr << "Port " << portName << " not open\n";
+		return 0;
 	}
 
-	bool running = true;
-	constexpr int length = 1;
-	char* msg = new char[length + 1];
+	// Set up game:
+	Game game;
+
+
+
+	char byte;
 
 	do {
-
-		if (!port.readBytes(msg, length)) {
-			std::cout << msg << std::endl;
+		// get input from arduino controller:
+		if (port.readByte(&byte)) {
+			std::cerr << "Failed to read byte\n";
+			byte = 0;
 		}
-		else {
-			std::cout << "fail";
-		}
-		std::cout << msg << std::endl;
 
+		InputData data = byteToInputData(byte);
 
-		
-		
+		// handle input:
+		game.update(data);
 
-	} while (running);
+		game.draw();
 
-	delete[] msg;
+	} while (game.running);
+
 	return 0;
 }
 
