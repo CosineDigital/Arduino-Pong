@@ -1,26 +1,38 @@
 #include <Windows.h>
 #include <iostream>
 #include "Serial.hpp"
+#include <chrono>
 
 int main()
 {
-	SerialPort port = SerialPort("COM3");
+	SerialPort port = SerialPort();
 
 	if (!port.open) {
 		return 1;
 	}
 
-	constexpr int length = 32;
-
+	bool running = true;
+	constexpr int length = 1;
 	char* msg = new char[length + 1];
 
-	if (!port.readBytes(msg, length)) {
-		std::cout << msg;
-	}
-	else {
-		std::cout << "fail";
-		return 1;
-	}
+	do {
 
+		if (!port.readBytes(msg, length)) {
+			std::cout << msg << std::endl;
+		}
+		else {
+			std::cout << "fail";
+		}
+		std::cout << msg << std::endl;
+
+
+		
+		
+
+	} while (running);
+
+	delete[] msg;
 	return 0;
 }
+
+

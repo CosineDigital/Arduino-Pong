@@ -2,15 +2,18 @@
 
 #include "Serial.hpp"
 
-SerialPort::SerialPort(const char* name) : open(true) {
+SerialPort::SerialPort() : open(true) {
 
-    handle = CreateFileA(name,
+    handle = CreateFileA(
+        "\\\\.\\COM3",
         GENERIC_READ | GENERIC_WRITE,
         0,
-        0,
+        NULL,
         OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,
-        0);
+        NULL);
+
+    std::cout << handle << std::endl;
 
     if (handle == INVALID_HANDLE_VALUE) {        
         if (GetLastError() == ERROR_FILE_NOT_FOUND) {
@@ -26,6 +29,7 @@ SerialPort::SerialPort(const char* name) : open(true) {
     }
 
     DCB dcbSerialParam = { 0 };
+    dcbSerialParam.DCBlength = sizeof(dcbSerialParam);
 
     if (!GetCommState(handle, &dcbSerialParam)) {
         issueError();
@@ -33,7 +37,7 @@ SerialPort::SerialPort(const char* name) : open(true) {
         open = false;
     }
 
-    dcbSerialParam.BaudRate = CBR_19200;
+    dcbSerialParam.BaudRate = CBR_9600;
     dcbSerialParam.ByteSize = 8;
     dcbSerialParam.StopBits = ONESTOPBIT;
     dcbSerialParam.Parity = NOPARITY;
@@ -61,9 +65,13 @@ int SerialPort::readBytes(char* msg, int length) const noexcept {
 
     DWORD dwRead = 0;
     if (!ReadFile(handle, msg, length, &dwRead, NULL)) {
+        std::cout << dwRead << std::endl;
         issueError();
         return 1;
     }
+
+    std::cout << dwRead << std::endl;
+
     return 0;
 }
 
@@ -71,9 +79,11 @@ int SerialPort::writeBytes(char* msg, int length) const noexcept {
 
     DWORD dwRead = 0;
     if (!WriteFile(handle, msg, length, &dwRead, NULL)) {
+
         issueError();
         return 1;
     }
+
     return 0;
 }
 

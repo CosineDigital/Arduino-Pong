@@ -5,10 +5,10 @@
 class SerialPort {
 		
 private:
-	HANDLE handle = 0;
+	HANDLE handle;
 
 public:
-	explicit SerialPort(const char*);
+	explicit SerialPort();
 	~SerialPort();
 
 	int writeBytes(char*, int) const noexcept;
