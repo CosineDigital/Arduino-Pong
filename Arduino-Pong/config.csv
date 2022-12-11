@@ -14,3 +14,6 @@ ball, O
 player, H
 player-speed, 0.02
 millis-per-frame, 16
+wall-width, 1
+wall-height, 0.1
+wall-offset, 0.9

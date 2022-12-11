@@ -10,14 +10,17 @@
 
 #include "Player.hpp"
 #include "InputData.hpp"
-#include "Ball.h"
+#include "Ball.hpp"
+#include "Wall.hpp"
 
 class Game final {
 
 public:
-	Player player1, player2;
-	Ball ball;
-	//std::vector<Wall> walls;
+	Player* player1, *player2;
+	Ball* ball;
+	Wall* bottom, *top;
+
+	std::vector<AABB*> aabbs;
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 	std::chrono::nanoseconds frameTime;
@@ -64,16 +67,36 @@ public:
 		maxFrameTime = std::chrono::milliseconds(stoi(config["millis-per-frame"]));
 		playerSpeed = stof(config["player-speed"]);
 
-		ball.aabb.width = stof(config["ball-radius"]);
-		ball.aabb.height = stof(config["ball-radius"]);
+		ball = new Ball();
 
-		player1.aabb.width = stof(config["player-width"]);
-		player1.aabb.height = stof(config["player-height"]);
-		player1.xpos = - stof(config["player-offset"]);
+		ball->aabb.width = stof(config["ball-radius"]);
+		ball->aabb.height = stof(config["ball-radius"]);
 
-		player2.aabb.width = stof(config["player-width"]);
-		player2.aabb.height = stof(config["player-height"]);
-		player1.xpos = + stof(config["player-offset"]);
+		player1 = new Player();
+
+		player1->width = stof(config["player-width"]);
+		player1->height = stof(config["player-height"]);
+		player1->x = - stof(config["player-offset"]);
+
+		player2 = new Player();
+
+		player2->width = stof(config["player-width"]);
+		player2->height = stof(config["player-height"]);
+		player1->x = + stof(config["player-offset"]);
+
+		top = new Wall();
+
+		top->ypos = + stof(config["wall-offset"]);
+		top->width = stof(config["wall-width"]);
+		top->height = stof(config["wall-height"]);
+
+		bottom = new Wall();
+
+		bottom->ypos = -stof(config["wall-offset"]);
+		bottom->width = stof(config["wall-width"]);
+		bottom->height = stof(config["wall-height"]);
+
+		aabbs = { player1, player2, top, bottom };
 
 		ballChar = stoi(config["ball"]);
 		wallTopChar = stoi(config["wall-top"]);
@@ -90,24 +113,46 @@ public:
 
 		// player 1, the left player
 		if (data.p1UpPressed) {
-			player1.dy = playerSpeed;
+			player1->dy = playerSpeed;
 		}
 		if (data.p1DownPressed) {
-			player1.dy = -playerSpeed;
+			player1->dy = -playerSpeed;
 		}
 
 		// player 2, the right player
 		if (data.p2UpPressed) {
-			player2.dy = playerSpeed;
+			player2->dy = playerSpeed;
 		}
 		if (data.p2DownPressed) {
-			player2.dy = -playerSpeed;
+			player2->dy = -playerSpeed;
 		}
 
 		// update positions
-		player1.ypos += player1.dy * timeStep;
-		player2.ypos += player2.dy * timeStep;
+		player1->y += player1->dy * timeStep;
+		player2->y += player2->dy * timeStep;
 
+		ball->y += ball->dy;
+		ball->x += ball->dx;
+
+		// handle collisions between ball and the environment
+		for (auto* aabb : aabbs) {
+			switch (::isColliding(ball, aabb)) {
+				case ColDir::NONE:
+					break;
+				case ColDir::RIGHT:
+					ball->dx *= -1;
+					break;
+				case ColDir::TOP:
+					ball->dy *= -1;
+					break;
+				case ColDir::LEFT:
+					ball->dx *= -1;
+					break;
+				case ColDir::BOTTOM:
+					ball->dy *= -1;
+					break;
+			}
+		}
 	}
 
 	void draw(void) {
@@ -131,6 +176,13 @@ public:
 		}
 
 		t2 = std::chrono::high_resolution_clock::now();
+	}
+
+	~Game() {
+		delete ball;
+		for (auto* aabb : aabbs) {
+			delete aabb;
+		}
 	}
 
 private:

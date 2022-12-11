@@ -26,8 +26,6 @@ int main()
 	// Set up game:
 	Game game;
 
-
-
 	char byte;
 
 	do {

@@ -2,19 +2,13 @@
 
 #include "AABB.hpp"
 
-class Player final {
+class Player final : public AABB  {
 
 public:
+	Player();
+
 	int score;
-	float xpos, ypos;
 	float dy;
-
-	AABB aabb;
-
-	Player() {
-		aabb.x = &ypos;
-		aabb.y = &xpos;
-	}
 
 private:
 

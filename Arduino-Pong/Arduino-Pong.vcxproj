@@ -131,11 +131,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AABB.hpp" />
-    <ClInclude Include="Ball.h" />
+    <ClInclude Include="Ball.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="InputData.hpp" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="Serial.hpp" />
+    <ClInclude Include="Wall.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Xsd Include="config.csv">
