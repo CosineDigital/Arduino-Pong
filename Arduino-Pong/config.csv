@@ -1,19 +1,22 @@
-﻿NAME, VALUE  
-ball-radius, 0.05
-ball-velocity, 1
-player-velocity, 1
-player-width, 0.1
-player-height, 0.3
-player-offset, 0.75
-game-width-chars, 90
-game-height-chars, 30
-points-to-win, 5
-top-wall, W
-bottom-wall, M
-ball, O
-player, H
-player-speed, 0.02
-millis-per-frame, 16
-wall-width, 1
-wall-height, 0.1
-wall-offset, 0.9
+﻿NAME,VALUE
+// Do not remove first line
+// Most values are in unit space coordinates
+ball-radius,0.05
+ball-velocity,1
+player-velocity,1
+player-width,0.1
+player-height,0.3
+player-offset,0.75
+points-to-win,5
+player-speed,0.02
+wall-width,1
+wall-height,0.1
+wall-offset,0.9
+wall-top,W
+wall-bottom,M
+player,H
+ball,O
+// console specific stuff
+millis-per-frame,200
+game-width-chars,100
+game-height-chars,30

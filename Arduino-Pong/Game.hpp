@@ -1,4 +1,5 @@
 #pragma once
+#include <Windows.h>
 #include <map>
 #include <string>
 #include <fstream>
@@ -7,37 +8,21 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <conio.h>
 
 #include "Player.hpp"
 #include "InputData.hpp"
 #include "Ball.hpp"
 #include "Wall.hpp"
 
+
 class Game final {
 
 public:
-	Player* player1, *player2;
-	Ball* ball;
-	Wall* bottom, *top;
-
-	std::vector<AABB*> aabbs;
-
-	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
-	std::chrono::nanoseconds frameTime;
-
-	std::chrono::milliseconds maxFrameTime;
-
-	float timeStep;
-
-	float playerSpeed;
-
 	bool running;
-	int width, height;
-	int scoreToWin;
 
-	char ballChar, wallBottomChar, wallTopChar, playerChar;
-	 
-	Game() : running(false) {
+public:
+	Game() : running(true) {
 
 		// get all data
 		std::map<std::string, std::string> config;
@@ -46,12 +31,16 @@ public:
 		file.open("config.csv");
 
 		std::string name = "";
-		std::stringstream ss = {};
 		// assume csv structure: name, value
 		for (std::string line; std::getline(file, line, '\n');) {
+			if (line.substr(0, 2) == "//")
+				continue;
+
 			int i = 0;
-			for (std::string value; std::getline(std::stringstream{line}, value, ','); i++) {
-				if (i == 0)
+			std::string value;
+			std::stringstream ss(line);
+			while (std::getline(ss, value, ',')) {
+				if (i++ == 0)
 					name = value;
 				else
 					config[name] = value;
@@ -60,9 +49,12 @@ public:
 		}
 
 		// set up the game
-		width = stoi(config["game-width-chars"]);
-		height = stoi(config["game-height-chars"]);
+		gameWidthChars = stoi(config["game-width-chars"]);
+		gameHeightChars = stoi(config["game-height-chars"]);
 		scoreToWin = stoi(config["points-to-win"]);
+
+		charBuffer = new char[gameWidthChars * gameHeightChars];
+		std::memset(charBuffer, 33, gameWidthChars * gameHeightChars);
 
 		maxFrameTime = std::chrono::milliseconds(stoi(config["millis-per-frame"]));
 		playerSpeed = stof(config["player-speed"]);
@@ -97,14 +89,18 @@ public:
 		bottom->height = stof(config["wall-height"]);
 
 		aabbs = { player1, player2, top, bottom };
+		
+		ballChar = (config["ball"])[0];
+		wallTopChar = (config["wall-top"])[0];
+		wallBottomChar = (config["wall-bottom"])[0];
 
-		ballChar = stoi(config["ball"]);
-		wallTopChar = stoi(config["wall-top"]);
-		wallBottomChar = stoi(config["wall-bottom"]);
+		std::iostream::sync_with_stdio(0);
 	}
 
 	void update(InputData data) {
 		
+		t1 = std::chrono::high_resolution_clock::now();
+
 		if (data.resetPressed) {
 			running = false;
 		}
@@ -131,12 +127,12 @@ public:
 		player1->y += player1->dy * timeStep;
 		player2->y += player2->dy * timeStep;
 
-		ball->y += ball->dy;
-		ball->x += ball->dx;
+		ball->y += ball->dy * timeStep;
+		ball->x += ball->dx * timeStep;
 
 		// handle collisions between ball and the environment
 		for (auto* aabb : aabbs) {
-			switch (::isColliding(ball, aabb)) {
+			switch (ball->isColliding(aabb)) {
 				case ColDir::NONE:
 					break;
 				case ColDir::RIGHT:
@@ -153,40 +149,57 @@ public:
 					break;
 			}
 		}
-	}
 
-	void draw(void) {
-		t1 = std::chrono::high_resolution_clock::now();
+		this->draw();
 
-		// draw to console
-
-
-
-
-
-
-
-
+		t2 = std::chrono::high_resolution_clock::now();
 
 		frameTime = t2 - t1;
-		timeStep = (float)frameTime.count() / 1'000'000'000;
+		timeStep = (float)std::chrono::duration_cast<std::chrono::milliseconds>(frameTime).count() / 1000;
 
 		if (frameTime < maxFrameTime) {
 			std::this_thread::sleep_for(maxFrameTime - frameTime);
 		}
-
-		t2 = std::chrono::high_resolution_clock::now();
 	}
-
+	
 	~Game() {
 		delete ball;
 		for (auto* aabb : aabbs) {
 			delete aabb;
 		}
+
+		delete[] charBuffer;
 	}
 
 private:
 
+	void draw(void) {
+		system("cls");
+		std::puts(charBuffer);
+	}
+
+private:
+
+	Player* player1, * player2;
+	Ball* ball;
+	Wall* bottom, * top;
+
+	std::vector<AABB*> aabbs;
+
+	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
+	std::chrono::nanoseconds frameTime;
+
+	std::chrono::milliseconds maxFrameTime;
+
+	int gameHeightChars, gameWidthChars;
+	int scoreToWin;
+
+	float timeStep;
+
+	float playerSpeed;
+
+	char* charBuffer;
 
 
+	char ballChar, wallBottomChar, wallTopChar, playerChar;
 };

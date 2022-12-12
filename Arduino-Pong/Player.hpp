@@ -5,9 +5,8 @@
 class Player final : public AABB  {
 
 public:
-	Player();
+	Player() {};
 
-	int score;
 	float dy;
 
 private:

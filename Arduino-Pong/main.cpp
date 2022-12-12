@@ -10,7 +10,7 @@
 int main()
 {
 	int portNum;
-	std::cout << "enter Arduino port number:\n";
+	std::cout << "Enter Arduino port number:\n";
 	std::cin >> portNum;
 
 	char portName[16] = { 0 };
@@ -19,14 +19,14 @@ int main()
 	SerialPort port = SerialPort(portName);
 
 	if (!port.open) {
-		std::cerr << "Port " << portName << " not open\n";
+		std::cerr << "Port " << portName << " is not open\n";
 		return 0;
 	}
 
 	// Set up game:
 	Game game;
 
-	char byte;
+	char byte = { 0 };
 
 	do {
 		// get input from arduino controller:
@@ -37,10 +37,8 @@ int main()
 
 		InputData data = byteToInputData(byte);
 
-		// handle input:
+		// run game:
 		game.update(data);
-
-		game.draw();
 
 	} while (game.running);
 

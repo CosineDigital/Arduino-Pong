@@ -6,6 +6,10 @@ class AABB {
 public:
 	float x, y;
 	float width, height;
+
+	inline float right() {
+
+	}
 };
 
 enum class ColDir {
@@ -15,11 +19,3 @@ enum class ColDir {
 	LEFT,
 	BOTTOM
 };
-
-// object collides with other
-ColDir isColliding(AABB* object, AABB* other) {
-
-	
-
-
-}
