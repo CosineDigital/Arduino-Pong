@@ -15,7 +15,6 @@
 #include "Ball.hpp"
 #include "Wall.hpp"
 
-
 class Game final {
 
 public:
