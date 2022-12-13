@@ -10,18 +10,18 @@ private:
 public:
 	bool open;
 
-    explicit SerialPort(const char* portName) : open(true) {
+    SerialPort() {}
+
+    SerialPort(const char* portName) : open(true) {
 
         handle = CreateFileA(
             portName,
-            GENERIC_READ | GENERIC_WRITE,
+            GENERIC_READ,
             0,
             NULL,
             OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
+            FILE_ATTRIBUTE_READONLY,
             NULL);
-
-        std::cout << handle << std::endl;
 
         if (handle == INVALID_HANDLE_VALUE) {
             if (GetLastError() == ERROR_FILE_NOT_FOUND) {
@@ -30,7 +30,6 @@ public:
             }
 
             std::cout << "Invalid handle\n";
-
             issueError();
 
             open = false;
@@ -45,7 +44,7 @@ public:
             open = false;
         }
 
-        dcbSerialParam.BaudRate = CBR_9600;
+        dcbSerialParam.BaudRate = 9600;
         dcbSerialParam.ByteSize = 8;
         dcbSerialParam.StopBits = ONESTOPBIT;
         dcbSerialParam.Parity = NOPARITY;
@@ -57,11 +56,11 @@ public:
         }
 
         COMMTIMEOUTS timeout = { 0 };
-        timeout.ReadIntervalTimeout = 60;
-        timeout.ReadTotalTimeoutConstant = 60;
-        timeout.ReadTotalTimeoutMultiplier = 15;
-        timeout.WriteTotalTimeoutConstant = 60;
-        timeout.WriteTotalTimeoutMultiplier = 8;
+        timeout.ReadIntervalTimeout = 50; //60
+        timeout.ReadTotalTimeoutConstant = 50; //60
+        timeout.ReadTotalTimeoutMultiplier = 50;
+        timeout.WriteTotalTimeoutConstant = 50;
+        timeout.WriteTotalTimeoutMultiplier = 10;
         if (!SetCommTimeouts(handle, &timeout)) {
             issueError();
 
@@ -73,12 +72,13 @@ public:
 
         DWORD dwRead = 0;
         if (!ReadFile(handle, msg, length, &dwRead, NULL)) {
-            std::cout << dwRead << std::endl;
+
+            std::cout << *msg << '\n';
+            std::cout << dwRead << '\n';
+
             issueError();
             return 1;
         }
-
-        std::cout << dwRead << std::endl;
 
         return 0;
     }
@@ -98,8 +98,9 @@ public:
     int readByte(char* byte) const noexcept {
 
         DWORD dwRead = 0;
-        if (!WriteFile(handle, byte, 1, &dwRead, NULL)) {
+        if (!ReadFile(handle, byte, 1, &dwRead, NULL)) {
             issueError();
+
             return 1;
         }
 
@@ -107,6 +108,7 @@ public:
     }
 
     void issueError(void) const noexcept {
+
         wchar_t lastErr[1020];
         FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
             NULL,
@@ -115,6 +117,8 @@ public:
             lastErr,
             1020,
             NULL);
+
+        std::cout << lastErr << std::endl;
     }
 
     ~SerialPort() {

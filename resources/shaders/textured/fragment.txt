@@ -1,0 +1,20 @@
+// This is an OpenGL Shading Language (glsl) File //
+
+#version 330 core
+
+out vec4 FragColor;
+
+in vec2 tex_coord;
+
+// the current sprite sheet we are pulling sprites from
+uniform sampler2D sprite_sheet;
+
+void main()
+{
+    vec4 color = texture(sprite_sheet, tex_coord);
+    if (color.a < 0.1f) {
+        discard;
+    }
+
+    FragColor = color;
+}

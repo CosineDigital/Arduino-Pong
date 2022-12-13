@@ -18,6 +18,42 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="README.md" />
+    <None Include="resources\config.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\core\AABB.hpp" />
+    <ClInclude Include="src\core\Ball.hpp" />
+    <ClInclude Include="src\app\Game.hpp" />
+    <ClInclude Include="src\core\camera.h" />
+    <ClInclude Include="src\graphics\animator.h" />
+    <ClInclude Include="src\graphics\line_renderer.h" />
+    <ClInclude Include="src\graphics\particle.h" />
+    <ClInclude Include="src\graphics\renderer.h" />
+    <ClInclude Include="src\graphics\shader.h" />
+    <ClInclude Include="src\graphics\shader_program.h" />
+    <ClInclude Include="src\graphics\sprite.h" />
+    <ClInclude Include="src\graphics\sprite_sheet.h" />
+    <ClInclude Include="src\graphics\vertex.h" />
+    <ClInclude Include="src\input\InputData.hpp" />
+    <ClInclude Include="src\input\SerialPort.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\core\camera.cpp" />
+    <ClCompile Include="src\app\main.cpp" />
+    <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\graphics\line_renderer.cpp" />
+    <ClCompile Include="src\graphics\renderer.cpp" />
+    <ClCompile Include="src\graphics\shader.cpp" />
+    <ClCompile Include="src\graphics\shader_program.cpp" />
+    <ClCompile Include="src\graphics\stb_implementation\stb_implementation.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\GLFW\glfw3dll.lib" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -124,29 +160,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AABB.hpp" />
-    <ClInclude Include="Ball.hpp" />
-    <ClInclude Include="Game.hpp" />
-    <ClInclude Include="InputData.hpp" />
-    <ClInclude Include="Player.hpp" />
-    <ClInclude Include="Serial.hpp" />
-    <ClInclude Include="Wall.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xsd Include="config.csv">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <FileType>Text</FileType>
-    </Xsd>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
