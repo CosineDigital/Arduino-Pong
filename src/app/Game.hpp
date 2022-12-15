@@ -45,149 +45,149 @@ public:
 		aabbs = { player1, player2, top, bottom };
 	}
 
-	void init() {
+	int init() {
 
-		// get all data
-		std::map<std::string, std::string> config;
+		// open config file
+		std::ifstream file("resources/config.csv");
+		if (file.is_open()) {
+			// get all data
+			std::map<std::string, std::string> config;
+			// assume csv structure: name, value
+			for (std::string line; std::getline(file, line, '\n');) {
+				// ignore comments
+				if (line.substr(0, 2) == "//")
+					continue;
 
-		std::ifstream file;
-		file.open("resources/config.csv");
-		if (!file.is_open()) {
-			std::cerr << "Could not open config file\n";
-			err = 1;
-			return;
-		}
-
-		std::string name = "";
-		// assume csv structure: name, value
-		for (std::string line; std::getline(file, line, '\n');) {
-			if (line.substr(0, 2) == "//")
-				continue;
-
-			int i = 0;
-			std::string value;
-			std::stringstream ss(line);
-			while (std::getline(ss, value, ',')) {
-				if (i++ == 0)
-					name = value;
-				else
-					config[name] = value;
+				int i = 0;
+				std::string name, value;
+				std::stringstream ss(line);
+				while (std::getline(ss, value, ',')) {
+					if (i++ == 0)
+						name = value;
+					else
+						config[name] = value;
+				}
+				ss.clear();
 			}
-			ss.clear();
-		}
 
-		// Set up the port for comminicating with the arduino
-		char portName[16] = { 0 };
-		sprintf_s(portName, R"(\\.\COM%i)", stoi(config["arduino-port"]));
+			// open port
+			// Set up the port for comminicating with the arduino
+			char portName[16] = { 0 };
+			sprintf_s(portName, R"(\\.\COM%i)", stoi(config["arduino-port"]));
 
-		port = SerialPort(portName);
+			if (port.init(portName)) {
 
-		if (!port.open) {
-			std::cerr << "Port " << portName << " is not open\n";
-			err = 1;
-			return;
-		}
+				// set up the game
+				width = stoi(config["game-width"]);
+				height = stoi(config["game-height"]);
+				pointsToWin = stoi(config["points-to-win"]);
+				pointsPerGoal = stoi(config["points-per-goal"]);
 
-		// set up the game
-		width = stoi(config["game-width"]);
-		height = stoi(config["game-height"]);
-		pointsToWin = stoi(config["points-to-win"]);
-		pointsPerGoal = stoi(config["points-per-goal"]);
+				maxFrameTime = std::chrono::milliseconds(stoi(config["millis-per-frame"]));
+				playerSpeed = stof(config["player-speed"]);
+				ballSpeed = stof(config["ball-speed"]);
 
-		maxFrameTime = std::chrono::milliseconds(stoi(config["millis-per-frame"]));
-		playerSpeed = stof(config["player-speed"]);
-		ballSpeed = stof(config["ball-speed"]);
+				ball->dim.y = stof(config["ball-radius"]);
+				ball->dim.x = stof(config["ball-radius"]);
 
-		ball->dim.y = stof(config["ball-radius"]);
-		ball->dim.x = stof(config["ball-radius"]);
+				player1->dim.x = stof(config["player-width"]);
+				player1->dim.y = stof(config["player-height"]);
+				player1->pos.x = -stof(config["player-offset"]);
 
-		player1->dim.x = stof(config["player-width"]);
-		player1->dim.y = stof(config["player-height"]);
-		player1->pos.x = -stof(config["player-offset"]);
+				player2->dim.x = stof(config["player-width"]);
+				player2->dim.y = stof(config["player-height"]);
+				player2->pos.x = +stof(config["player-offset"]);
 
-		player2->dim.x = stof(config["player-width"]);
-		player2->dim.y = stof(config["player-height"]);
-		player2->pos.x = +stof(config["player-offset"]);
+				top->pos.y = +stof(config["wall-offset"]);
+				top->dim.x = stof(config["wall-width"]);
+				top->dim.y = stof(config["wall-height"]);
 
-		top->pos.y = +stof(config["wall-offset"]);
-		top->dim.x = stof(config["wall-width"]);
-		top->dim.y = stof(config["wall-height"]);
+				bottom->pos.y = -stof(config["wall-offset"]);
+				bottom->dim.x = stof(config["wall-width"]);
+				bottom->dim.y = stof(config["wall-height"]);
 
-		bottom->pos.y = -stof(config["wall-offset"]);
-		bottom->dim.x = stof(config["wall-width"]);
-		bottom->dim.y = stof(config["wall-height"]);
+				// goal 1
+				goal1->is_trigger = true;
+				goal1->trigger_callback = [&]() {
+					player2Score++;
+				};
+				goal1->dim.x = stof(config["goal-width"]);
+				goal1->dim.y = stof(config["goal-height"]);
+				goal1->pos.x = -stof(config["goal-offset"]);
 
-		// goal 1
-		goal1->is_trigger = true;
-		goal1->trigger_callback = [&]() {
-			player2Score++;
-		};
-		goal1->dim.x = stof(config["goal-width"]);
-		goal1->dim.y = stof(config["goal-height"]);
-		goal1->pos.x = - stof(config["goal-offset"]);
+				// goal 2
+				goal2->is_trigger = true;
+				goal2->trigger_callback = [&]() {
+					player1Score++;
+				};
+				goal2->dim.x = stof(config["goal-width"]);
+				goal2->dim.y = stof(config["goal-height"]);
+				goal2->pos.x = +stof(config["goal-offset"]);
 
-		// goal 2
-		goal2->is_trigger = true;
-		goal2->trigger_callback = [&]() {
-			player1Score++;
-		};
-		goal2->dim.x = stof(config["goal-width"]);
-		goal2->dim.y = stof(config["goal-height"]);
-		goal2->pos.x = + stof(config["goal-offset"]);
+				ball->dy = ballSpeed;
+				ball->dx = ballSpeed;
 
+				// setup opengl context
 
-		ball->dy = ballSpeed;
-		ball->dx = ballSpeed;
+				glfwInit();
+				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+				glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+				glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+				glfwWindowHint(GLFW_REFRESH_RATE, 60);
 
-		// set up drawing...
+				glfwWindow = glfwCreateWindow(width, height, "Arduino-Pong", 0, 0);
 
-		glfwInit();
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_REFRESH_RATE, 60);
+				if (glfwWindow) {
+					glfwSetWindowUserPointer(glfwWindow, this);
+					glfwMakeContextCurrent(glfwWindow);
+					glfwSetFramebufferSizeCallback(glfwWindow, ::framebuffer_size_callback);
+					glfwSetMouseButtonCallback(glfwWindow, ::mouse_callback);
+					glfwSetKeyCallback(glfwWindow, ::keyboard_callback);
+					glfwSetScrollCallback(glfwWindow, ::scroll_callback);
+					glfwSetCursorPosCallback(glfwWindow, ::cursor_callback);
+					glfwSetErrorCallback(::glfw_error_callback);
 
-		glfwWindow = glfwCreateWindow(width, height, "Arduino-Pong", 0, 0);
+					if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+						// set up renderer
+						renderer = new Renderer();
+						camera = new Camera({ 0, 0, 0 }, { 0, 1, 0 }, -90.f, 0.f, 0.01f);
 
-		if (!glfwWindow) {
-			std::cerr << "ERROR\tCould not create a GLFWWindow context!\n";
-			err = 1;
-			return;
+						// success
+						return 1;
+					}
+					else {
+						std::cerr << "Could not initialize Glad\n";
+						return 0;
+					}
+				}
+				else {
+					std::cerr << "Could not create a GLFWWindow\n";
+					return 0;
+				}
+			}
+			else {
+				std::cerr << "Could not initialize the port\n";
+				return 0;
+			}
 		}
 		else {
-			glfwSetWindowUserPointer(glfwWindow, this);
-			glfwMakeContextCurrent(glfwWindow);
-			glfwSetFramebufferSizeCallback(glfwWindow, ::framebuffer_size_callback);
-			glfwSetMouseButtonCallback(glfwWindow, ::mouse_callback);
-			glfwSetKeyCallback(glfwWindow, ::keyboard_callback);
-			glfwSetScrollCallback(glfwWindow, ::scroll_callback);
-			glfwSetCursorPosCallback(glfwWindow, ::cursor_callback);
-			glfwSetErrorCallback(::glfw_error_callback);
+			std::cerr << "Could not open config file\n";
+			return 0;
 		}
-
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-			std::cerr << "ERROR\tCould not initialize Glad\n";
-			err = 1;
-			return;
-		}
-
-		// set up renderer
-		renderer = new Renderer();
-		camera = new Camera({ 0, 0, 0 }, { 0, 1, 0 }, -90.f, 0.f, 0.01f);
 	}
 
-	void run(void) {
+	void run() {
 
 		while (!glfwWindowShouldClose(glfwWindow)) {
 
 			t1 = std::chrono::high_resolution_clock::now();
 
 			// get input data byte from arduino
-			if (port.readBytes(byte, 32)) {
-				memset(byte, 0, 32);
+			if (port.readBytes(byte, 255)) {
+				memset(byte, 0, 255);
 			}
 
-			this->update(byteToInputData(byte[0]));
+			this->update(::byteToInputData(byte[0]));
 
 			this->draw();
 
@@ -203,7 +203,6 @@ public:
 			//	std::this_thread::sleep_for(maxFrameTime - frameTime);
 			//}
 		}
-
 	}
 	
 	~Game() {
@@ -242,8 +241,6 @@ private:
 		if (data.p2DownPressed) {
 			player2->pos.y -= playerSpeed * timeStep;
 		}
-
-		// handle collisions between ball and the environment
 
 		// handle collisions between ball and the environment
 		for (auto* aabb : aabbs)
@@ -292,7 +289,7 @@ private:
 	float playerSpeed;
 	float ballSpeed;
 
-	char byte[32] = {};
+	char byte[255] = {};
 	SerialPort port;
 	GLFWwindow* glfwWindow;
 	Renderer* renderer;
