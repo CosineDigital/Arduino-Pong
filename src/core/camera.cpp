@@ -131,9 +131,6 @@ glm::mat4 Camera::getProjection(void) const noexcept
     // according to reddit: 13 x 24 blocks is reasonable
     //constexpr float w = 24.0f;
     //constexpr float h = 13.0f;
-     
-    constexpr float w = 2.0f;
-    constexpr float h = 2.0f;
     
     return glm::ortho(-w / 2.0f + mPosition.x, // left
                        w / 2.0f + mPosition.x, // right

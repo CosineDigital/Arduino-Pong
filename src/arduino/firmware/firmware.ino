@@ -25,22 +25,21 @@ void setup()
   }
 }
 
+int i = 0;
 void loop()
 {
-  char bryan;
+  char data{};
 
   // data structure:
   //  0   0   0   1   1   1   1   1
   //              reset leftup  leftd rigthup rightdown
-  bryan |= digitalRead(P2UpPin) << 0;
-  bryan |= digitalRead(P2DownPin) << 1;
-  bryan |= digitalRead(P1UpPin) << 2;
-  bryan |= digitalRead(P1DownPin) << 3;
-  bryan |= digitalRead(ResetPin) << 4;
+  data |= digitalRead(P2UpPin) << 0;
+  data |= digitalRead(P2DownPin) << 1;
+  data |= digitalRead(P1UpPin) << 2;
+  data |= digitalRead(P1DownPin) << 3;
+  data |= digitalRead(ResetPin) << 4;
 
-  if (Serial.available() > 0) {
-    Serial.println("this is my message, please workdjkwajdakhaw");
-  }else{
-    Serial.println("this is my other message");
-  }
+  i = 0b01010101;
+
+  Serial.write(i);
 }

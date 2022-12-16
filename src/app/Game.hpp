@@ -9,6 +9,8 @@
 #include <chrono>
 #include <thread>
 #include <conio.h>
+#include <iomanip>
+#include <random>
 
 #include "../input/InputData.hpp"
 #include "../graphics/renderer.h"
@@ -28,9 +30,6 @@ static void glfw_error_callback(int error, const char* description);
 class Game final {
 
 public:
-	int err;
-
-public:
 	Game() {
 		ball = new Ball();
 
@@ -42,7 +41,9 @@ public:
 		top = new AABB();
 		bottom = new AABB();
 
-		aabbs = { player1, player2, top, bottom };
+		port = new SerialPort();
+
+		aabbs = { player1, player2, top, bottom, goal1, goal2 };
 	}
 
 	int init() {
@@ -73,9 +74,9 @@ public:
 			// open port
 			// Set up the port for comminicating with the arduino
 			char portName[16] = { 0 };
-			sprintf_s(portName, R"(\\.\COM%i)", stoi(config["arduino-port"]));
+			sprintf_s(portName, "\\\\.\\COM%i", stoi(config["arduino-port"]));
 
-			if (port.init(portName)) {
+			if (port->init(portName)) {
 
 				// set up the game
 				width = stoi(config["game-width"]);
@@ -86,6 +87,7 @@ public:
 				maxFrameTime = std::chrono::milliseconds(stoi(config["millis-per-frame"]));
 				playerSpeed = stof(config["player-speed"]);
 				ballSpeed = stof(config["ball-speed"]);
+				ballSpeedMultiplier = stof(config["ball-speed-multiplier"]);
 
 				ball->dim.y = stof(config["ball-radius"]);
 				ball->dim.x = stof(config["ball-radius"]);
@@ -98,6 +100,8 @@ public:
 				player2->dim.y = stof(config["player-height"]);
 				player2->pos.x = +stof(config["player-offset"]);
 
+				// set up walls
+
 				top->pos.y = +stof(config["wall-offset"]);
 				top->dim.x = stof(config["wall-width"]);
 				top->dim.y = stof(config["wall-height"]);
@@ -106,10 +110,34 @@ public:
 				bottom->dim.x = stof(config["wall-width"]);
 				bottom->dim.y = stof(config["wall-height"]);
 
+				bool spawnOtherWalls = stoi(config["spawn-other-walls"]);
+				float otherWallOffsetX = stof(config["other-wall-offset-x"]);
+				float otherWallOffsetY = stof(config["other-wall-offset-y"]);
+				float otherWallWidth = stof(config["other-wall-width"]);
+				float otherWallHeight = stof(config["other-wall-height"]);
+				if (spawnOtherWalls) {
+					// spawn four walls in the corners of the game
+					for (int i = -1; i < 2; i += 2) {
+						for (int j = -1; j < 2; j += 2) {
+							AABB* otherWall = new AABB();
+
+							otherWall->dim = { otherWallWidth, otherWallHeight };
+							otherWall->pos = { otherWallOffsetX * i, otherWallOffsetY * j};
+							aabbs.push_back(otherWall);
+						}
+					}
+				}
+
+				// pause time between goals and after reset
+				resetPauseTime = stof(config["reset-pause-time"]);
+				// by default have a pause before starting the game
+				resetPauseTimer = resetPauseTime;
+
 				// goal 1
 				goal1->is_trigger = true;
 				goal1->trigger_callback = [&]() {
-					player2Score++;
+					player2Points += pointsPerGoal;
+					onGoal();
 				};
 				goal1->dim.x = stof(config["goal-width"]);
 				goal1->dim.y = stof(config["goal-height"]);
@@ -118,16 +146,23 @@ public:
 				// goal 2
 				goal2->is_trigger = true;
 				goal2->trigger_callback = [&]() {
-					player1Score++;
+					player1Points += pointsPerGoal;
+					onGoal();
 				};
 				goal2->dim.x = stof(config["goal-width"]);
 				goal2->dim.y = stof(config["goal-height"]);
 				goal2->pos.x = +stof(config["goal-offset"]);
 
-				ball->dy = ballSpeed;
-				ball->dx = ballSpeed;
 
-				// setup opengl context
+				// set up ball
+				// give a random velocity
+
+				float a = randomAngle();
+				ball->vel = {ballSpeed * std::cosf(a), ballSpeed * std::sinf(a)};
+
+
+				// set up opengl context
+
 
 				glfwInit();
 				glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -151,6 +186,9 @@ public:
 						// set up renderer
 						renderer = new Renderer();
 						camera = new Camera({ 0, 0, 0 }, { 0, 1, 0 }, -90.f, 0.f, 0.01f);
+						// assume that the height is 1
+						camera->h = 1 * 2;
+						camera->w = ((float)width / (float)height) * 2.f;
 
 						// success
 						return 1;
@@ -182,22 +220,28 @@ public:
 
 			t1 = std::chrono::high_resolution_clock::now();
 
-			// get input data byte from arduino
-			if (port.readBytes(byte, 255)) {
-				memset(byte, 0, 255);
+			// only update the game if the game is not paused
+			if (resetPauseTimer < 0) {
+				
+				if (!port->readByte(byte)) {
+					memset(byte, 0, sizeof(byte) / sizeof(char));
+				}
+
+				this->update(::byteToInputData(byte[0]));
+			}
+			else {
+				resetPauseTimer -= timeStep;
 			}
 
-			this->update(::byteToInputData(byte[0]));
-
+			// always draw everything
 			this->draw();
-
-			glfwSwapBuffers(glfwWindow);
-			glfwPollEvents();
 
 			t2 = std::chrono::high_resolution_clock::now();
 
 			frameTime = t2 - t1;
 			timeStep = (float)std::chrono::duration_cast<std::chrono::milliseconds>(frameTime).count() / 1000;
+
+			
 
 			//if (frameTime < maxFrameTime) {
 			//	std::this_thread::sleep_for(maxFrameTime - frameTime);
@@ -211,7 +255,7 @@ public:
 			delete aabb;
 		}
 
-		delete camera, renderer;
+		delete camera, renderer, port;
 
 		glfwTerminate();
 	}
@@ -221,20 +265,47 @@ private:
 	void update(InputData data) {
 
 		if (data.resetPressed) {
-			;
+			// reset points and reset the game
+			player1Points = player2Points = 0;
+
+			reset();
 		}
 
 		// update velocities
 
+		float multiplier = 1;
+
 		// player 1, the left player
-		if (data.p1UpPressed) {
-			player1->pos.y += playerSpeed * timeStep;
+		// first check if we can move up anymore
+		if (player1->pos.y <  1 - top->dim.y - player1->dim.y &&
+			player1->pos.y > -1 + top->dim.y + player1->dim.y)
+		{
+			multiplier = 1;
 		}
-		if (data.p1DownPressed) {
-			player1->pos.y -= playerSpeed * timeStep;
+		else {
+			multiplier = -1;
 		}
 
+		// update the player accordingly
+		if (data.p1UpPressed) {
+			player1->pos.y += playerSpeed * timeStep * multiplier;
+		}
+		if (data.p1DownPressed) {
+			player1->pos.y -= playerSpeed * timeStep * multiplier;
+		}
+		
+
 		// player 2, the right player
+		// first check if we can move up anymore
+		if (player2->pos.y <  1 - top->dim.y - player1->dim.y &&
+			player2->pos.y > -1 + top->dim.y + player1->dim.y) {
+			multiplier = 1;
+		}
+		else {
+			multiplier = -1;
+		}
+
+		// update the player accordingly
 		if (data.p2UpPressed) {
 			player2->pos.y += playerSpeed * timeStep;
 		}
@@ -242,37 +313,117 @@ private:
 			player2->pos.y -= playerSpeed * timeStep;
 		}
 
-		// handle collisions between ball and the environment
-		for (auto* aabb : aabbs)
-			ball->handleCollision(aabb);
 
+		// handle collisions between ball and the environment
+		for (auto* aabb : aabbs) {
+
+			Collision collision = ball->checkCollision(aabb, timeStep);
+
+			// same as collisiondirection == none
+			if (collision.time < 1.f) {
+				// if it's a goal, then call the callback
+				if (aabb->is_trigger) {
+					aabb->trigger_callback();
+					continue;
+				}
+
+				// else, get the direction and handle the ball
+				switch (collision.direction) {
+					case CollisionDirection::RIGHT:
+						ball->vel.x *= -1;
+						break;
+					case CollisionDirection::BOTTOM:
+						ball->vel.y *= -1;
+						break;
+					case CollisionDirection::LEFT:
+						ball->vel.x *= -1;
+						break;
+					case CollisionDirection::TOP:
+						ball->vel.y *= -1;
+						break;
+				}
+
+				// TODO: more advanced collision and angles
+
+
+				// on collision increase the speed
+				ball->vel *= ballSpeedMultiplier;
+			}
+		}
+		
 		// update ball
-		ball->pos.y += ball->dy * timeStep;
-		ball->pos.x += ball->dx * timeStep;
+		ball->pos += ball->vel * timeStep;
 	}
 
 	void draw(void) {
-		
+
+		glClear(GL_COLOR_BUFFER_BIT);
+
 		// create objects on screen:
 		renderer->bufferQuad(ball->pos, ball->dim);
 
 		for (auto* aabb : aabbs) {
+			// don't draw goals
+			if (aabb->is_trigger) {
+				continue;
+			}
 			renderer->bufferQuad(aabb->pos, aabb->dim);
 		}
 
 		renderer->render(camera);
 
 		renderer->clear();
+
+		glfwSwapBuffers(glfwWindow);
+		glfwPollEvents();
+	}
+
+	inline float randomUnit() noexcept {
+		return randomEngine(gen);
+	}
+
+	inline float randomAngle() noexcept {
+		return randomUnit() * 6.283185307179586476925286766559f;
+	}
+
+	void onGoal() noexcept {
+		if (player1Points >= pointsToWin) {
+			std::cout << "Player 1 wins\n";
+			player1Points = player2Points = 0;
+		}
+		else if (player2Points >= pointsToWin) {
+			std::cout << "Player 2 wins\n";
+			player1Points = player2Points = 0;
+		}
+		reset();
+	}
+
+	void reset() {
+		// reset the game, wait then place the ball again
+		ball->pos = glm::vec2{};
+
+		float a = randomAngle();
+		ball->vel = { ballSpeed * std::cosf(a), ballSpeed * std::sinf(a) };
+
+		player1->pos.y = player2->pos.y = 0;
+
+		resetPauseTimer = resetPauseTime;
 	}
 
 private:
+
+
+
+	std::random_device rd;
+	std::mt19937 gen = std::mt19937(rd());
+	std::uniform_real_distribution<float> randomEngine = std::uniform_real_distribution<float>(0.f, 1.f);
 
 	AABB* player1, * player2;
 	Ball* ball;
 	AABB* bottom, * top;
 	AABB* goal1, * goal2;
 
-	int player1Score, player2Score;
+	int player1Points, player2Points;
 
 	std::vector<AABB*> aabbs;
 
@@ -284,13 +435,18 @@ private:
 	int height, width;
 	int pointsToWin, pointsPerGoal;
 
+	float resetPauseTime;
+	float resetPauseTimer;
+
 	float timeStep;
 
 	float playerSpeed;
 	float ballSpeed;
+	float ballSpeedMultiplier;
 
-	char byte[255] = {};
-	SerialPort port;
+	char byte[8] = {};
+
+	SerialPort* port;
 	GLFWwindow* glfwWindow;
 	Renderer* renderer;
 	Camera* camera;

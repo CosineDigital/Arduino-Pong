@@ -107,8 +107,8 @@ public:
         }
         */
         
-        DWORD dwRead = 0;
-        if (!ReadFile(handle, msg, length, &dwRead, NULL)) {
+        unsigned long bytesRead = 0;
+        if (ReadFile(handle, msg, length, &bytesRead, NULL)) {
             return 1;
         }
         else {
@@ -133,8 +133,8 @@ public:
 
     int readByte(char* byte) const noexcept {
 
-        DWORD dwRead = 0;
-        if (ReadFile(handle, byte, 1, &dwRead, NULL)) {
+        unsigned long bytesRead = 0;
+        if (ReadFile(handle, byte, 1, &bytesRead, NULL)) {
             return 1;
         }
         else {

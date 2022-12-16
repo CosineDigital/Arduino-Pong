@@ -22,6 +22,9 @@ public:
     friend class Editor;
     friend class Level;
 
+public:
+    float w = 2, h = 2;
+
     Camera(const glm::vec3& position_     = glm::vec3(12.0f, 6.5f, 0.0f),
            const glm::vec3& worldUp_      = glm::vec3(0.0f, 1.0f, 0.0f),
            const float& yaw_              = -90.0f, // rotation about the y axis

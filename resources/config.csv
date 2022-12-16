@@ -1,22 +1,40 @@
 ﻿NAME,VALUE
 // Do not remove first line
 // Most values are in unit space coordinates
-arduino-port, 3
-ball-radius,0.05
-ball-speed,0.5
-player-width,0.05
-player-height,1
-player-offset,0.90
+ball-radius,0.02
+ball-speed,1
+ball-speed-multiplier,1.01
+//
+// player
+player-width,0.025
+player-height,0.15
+player-offset,0.8
+player-speed,0.5
+//
+// points and scoring
 points-to-win,5
 points-per-goal,1
-goal-offset,1.05
-goal-width,0.1
-goal-height,1
-player-speed,0.02
-wall-width,1
-wall-height,0.05
-wall-offset,0.95
+//
 // console specific stuff
 millis-per-frame,16
 game-width,600
 game-height,600
+arduino-port,3
+reset-pause-time,1.25
+//
+// goals
+goal-offset,1.2
+goal-width,0.1
+goal-height,1
+//
+// walls
+wall-width,1
+wall-height,0.075
+wall-offset,1
+//
+// spawn alternative wall layout
+spawn-other-walls,1
+other-wall-height,0.2
+other-wall-offset-x,1
+other-wall-offset-y,0.8
+other-wall-width,0.075

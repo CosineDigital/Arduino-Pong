@@ -16,14 +16,19 @@ public:
 		pos = {};
 	}
 
-	glm::vec2 pos;
-	glm::vec2 dim;
+	glm::vec2 pos, dim;
 };
 
-enum class ColDir {
+
+enum class CollisionDirection {
 	NONE,
-	RIGHT,	
+	RIGHT,
 	TOP,
 	LEFT,
 	BOTTOM
+};
+
+struct Collision {
+	CollisionDirection direction;
+	float time;
 };

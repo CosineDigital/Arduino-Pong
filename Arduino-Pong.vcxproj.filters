@@ -19,6 +19,7 @@
     <None Include="README.md" />
     <None Include=".gitignore" />
     <None Include=".gitattributes" />
+    <None Include="src\arduino\firmware\firmware.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\AABB.hpp">
@@ -39,13 +40,7 @@
     <ClInclude Include="src\core\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\animator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\line_renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\particle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\renderer.h">

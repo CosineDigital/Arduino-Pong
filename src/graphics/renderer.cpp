@@ -176,8 +176,6 @@ void Renderer::bufferQuad(glm::vec2 pos, glm::vec2 dim) noexcept
 // draws everything that has been buffered
 void Renderer::render(const Camera* camera) noexcept
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     /** @note we just need projection here */
     mShader.use();
     mShader.setMat4("projection", camera->getProjection());

@@ -47,7 +47,7 @@ private:
     ShaderProgram mShader;
 
     // TODO: make sure this is dynamic, in case we go over this limit
-    int mMaxQuads = 10000;
+    int mMaxQuads = 100;
 
     int count;
 

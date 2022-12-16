@@ -23,15 +23,14 @@
     <None Include=".gitignore" />
     <None Include="README.md" />
     <None Include="resources\config.csv" />
+    <None Include="src\arduino\firmware\firmware.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\AABB.hpp" />
     <ClInclude Include="src\core\Ball.hpp" />
     <ClInclude Include="src\app\Game.hpp" />
     <ClInclude Include="src\core\camera.h" />
-    <ClInclude Include="src\graphics\animator.h" />
     <ClInclude Include="src\graphics\line_renderer.h" />
-    <ClInclude Include="src\graphics\particle.h" />
     <ClInclude Include="src\graphics\renderer.h" />
     <ClInclude Include="src\graphics\shader.h" />
     <ClInclude Include="src\graphics\shader_program.h" />
