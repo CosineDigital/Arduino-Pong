@@ -91,4 +91,19 @@
   <ItemGroup>
     <Library Include="lib\GLFW\glfw3dll.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\shaders\point\fragment.txt" />
+    <Text Include="resources\shaders\point\geometry.txt" />
+    <Text Include="resources\shaders\point\vertex.txt" />
+    <Text Include="resources\shaders\line\geometry.txt" />
+    <Text Include="resources\shaders\line\fragment.txt" />
+    <Text Include="resources\shaders\line\vertex.txt" />
+    <Text Include="resources\shaders\textured\fragment.txt" />
+    <Text Include="resources\shaders\textured\vertex.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\sprites\sprites.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

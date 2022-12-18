@@ -6,7 +6,7 @@ ball-speed,1
 ball-speed-multiplier,1.01
 //
 // player
-player-width,0.025
+player-width,0.05
 player-height,0.15
 player-offset,0.8
 player-speed,0.5

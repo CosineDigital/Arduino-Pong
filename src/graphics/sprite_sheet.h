@@ -4,9 +4,8 @@
 #include <cassert>
 #include <iostream>
 
-
-#include "C:\C++ Libraries\glad\include\glad\glad.h"
-#include "C:/C++ Libraries/stb/stb_image.h"
+#include <glad/glad.h>
+#include <stb/stb_image.h>
 
 class SpriteSheet {
 public:

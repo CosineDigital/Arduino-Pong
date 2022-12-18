@@ -1,16 +1,14 @@
 #pragma once
 #include <Windows.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 class SerialPort {
 		
-private:
-	HANDLE handle;
-
 public:
-	bool open;
 
-    SerialPort() : handle(0), open(false) {}
+    SerialPort() : handle(0) {}
 
     int init(const char* portName) {
 
@@ -46,18 +44,7 @@ public:
                 }
                 else {
                     PurgeComm(handle, PURGE_RXCLEAR | PURGE_TXCLEAR);
-                }
-
-                COMMTIMEOUTS timeout = { 0 };
-                timeout.ReadIntervalTimeout = 60;
-                timeout.ReadTotalTimeoutConstant = 60;
-                timeout.ReadTotalTimeoutMultiplier = 15;
-                timeout.WriteTotalTimeoutConstant = 60;
-                timeout.WriteTotalTimeoutMultiplier = 8;
-
-                if (!SetCommTimeouts(handle, &timeout)) {
-                    std::cerr << "Could not set comm timeouts\n";
-                    return 0;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 }
             }
         }
@@ -66,98 +53,41 @@ public:
         return 1;
     }
 
-    int readBytes(char* msg, int length) const noexcept {
-        
-        /*
+    int readByte(unsigned char* data) const noexcept {
+
+        DWORD bytesRead = 0;
+        unsigned int toRead = 0;
+
+        DWORD errors;
         COMSTAT status;
 
-        DWORD last_error;
-        DWORD dwRead = 0;
-        auto toRead = 0;
+        ClearCommError(handle, &errors, &status);
 
-        ClearCommError(handle, &last_error, &status);
-        
-        if (!ReadFile(handle, msg, length, &dwRead, NULL)) {
-            std::cout << msg << std::endl;
-        }
-
-        if (status.cbInQue > 0) {
-            if (status.cbInQue > length) {
-                toRead = length;
+        if (status.cbInQue > 0)
+        {
+            if (status.cbInQue > 1)
+            {
+                toRead = 1;
             }
-            else 
+            else
+            {
                 toRead = status.cbInQue;
-
-            if (!ReadFile(handle, msg, toRead, &dwRead, NULL)) {
-                std::cout << dwRead << std::endl;
-                return 0;
-            }
-            else {
-                std::cout << dwRead << std::endl;
-                issueError();
             }
         }
-        else {
-            std::cout << "nothing in queue\n";
-        }
 
-        if (ReadFile(handle, msg, toRead, &dwRead, NULL)) {
-            std::cout << dwRead << std::endl;
-            return 0;
-        }
-        */
-        
-        unsigned long bytesRead = 0;
-        if (ReadFile(handle, msg, length, &bytesRead, NULL)) {
-            return 1;
-        }
-        else {
-            std::cerr << "Could not read bytes\n";
-            return 0;
-        }
-
-        return 0;
+        return ReadFile(handle, (void*)data, toRead, &bytesRead, NULL);
     }
 
-    int writeBytes(char* msg, int length) const noexcept {
+    inline int writeByte(char data) const noexcept {
+        DWORD bytesSend;
 
-        DWORD dwRead = 0;
-        if (!WriteFile(handle, msg, length, &dwRead, NULL)) {
-
-            issueError();
-            return 1;
-        }
-
-        return 0;
-    }
-
-    int readByte(char* byte) const noexcept {
-
-        unsigned long bytesRead = 0;
-        if (ReadFile(handle, byte, 1, &bytesRead, NULL)) {
-            return 1;
-        }
-        else {
-            std::cerr << "Could not read byte\n";
-            return 0;
-        }
-    }
-
-    void issueError(void) const noexcept {
-
-        std::cout << GetLastError() << std::endl;
-
-        wchar_t lastErr[1020];
-        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL,
-            GetLastError(),
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-            lastErr,
-            1020,
-            NULL);
+        return WriteFile(handle, (void*)&data, 1, &bytesSend, 0);
     }
 
     ~SerialPort() {
         CloseHandle(handle);
     }
+private:
+    HANDLE handle;
+
 };

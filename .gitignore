@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+#Others
+/src/glad.c
+/lib/GLFW/*.lib
+
 # User-specific files
 *.rsuser
 *.suo

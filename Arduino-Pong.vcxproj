@@ -53,6 +53,19 @@
   <ItemGroup>
     <Library Include="lib\GLFW\glfw3dll.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="resources\shaders\line\fragment.txt" />
+    <Text Include="resources\shaders\line\geometry.txt" />
+    <Text Include="resources\shaders\line\vertex.txt" />
+    <Text Include="resources\shaders\point\fragment.txt" />
+    <Text Include="resources\shaders\point\geometry.txt" />
+    <Text Include="resources\shaders\point\vertex.txt" />
+    <Text Include="resources\shaders\textured\fragment.txt" />
+    <Text Include="resources\shaders\textured\vertex.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\sprites\sprites.png" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -105,6 +118,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\C++ Libraries;C:\C++ Libraries\glfw-3.3.2.bin.WIN64\glfw-3.3.2.bin.WIN64\include;C:\C++ Libraries\glad\include;C:\C++ Libraries\glm-0.9.9.8;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>

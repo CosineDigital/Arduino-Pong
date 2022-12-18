@@ -1,7 +1,7 @@
 #ifndef SPRITE_HANDLE_H_
 #define SPRITE_HANDLE_H_
 
-#include "C:\C++ Libraries\glm-0.9.9.8\glm\glm.hpp"
+#include <glm/glm.hpp>
 
 #include <iostream>
 

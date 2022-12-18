@@ -1,9 +1,6 @@
 #pragma once
 #include <functional>
-#include "C:\C++ Libraries\glm-0.9.9.8\glm\glm.hpp"
-#include "Ball.hpp"
-
-class Ball;
+#include <glm/glm.hpp>
 
 class AABB {
 public:

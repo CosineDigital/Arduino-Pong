@@ -3,15 +3,16 @@
 
 #include <map>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <KHR/khrplatform.h>
+#include <glm/glm.hpp>
+
 #include "../graphics/shader_program.h"
 #include "../graphics/sprite_sheet.h"
 #include "../graphics/sprite.h"
 #include "../graphics/vertex.h"
 #include "../core/camera.h"
-#include "C:\C++ Libraries\glad\include\glad\glad.h"
-#include "C:\C++ Libraries\glfw-3.3.2.bin.WIN64\glfw-3.3.2.bin.WIN64\include\GLFW\glfw3.h"
-#include "C:\C++ Libraries\glad\include\KHR\khrplatform.h"
-#include "C:\C++ Libraries\glm-0.9.9.8\glm\glm.hpp"
 
 class Renderer
 {

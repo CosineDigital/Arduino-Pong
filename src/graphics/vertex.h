@@ -1,6 +1,6 @@
 #pragma once
 
-#include "C:\C++ Libraries\glm-0.9.9.8\glm\glm.hpp"
+#include <glm/glm.hpp>
 
 struct Vertex
 {

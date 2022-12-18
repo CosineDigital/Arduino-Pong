@@ -9,16 +9,17 @@
 #include <chrono>
 #include <thread>
 #include <conio.h>
-#include <iomanip>
 #include <random>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <KHR/khrplatform.h>
+#include <glm/glm.hpp>
 
 #include "../input/InputData.hpp"
 #include "../graphics/renderer.h"
 #include "../core/Ball.hpp"
 #include "../input/SerialPort.hpp"
-#include "C:\C++ Libraries\glad\include\glad\glad.h"
-#include "C:\C++ Libraries\glfw-3.3.2.bin.WIN64\glfw-3.3.2.bin.WIN64\include\GLFW\glfw3.h"
-#include "C:\C++ Libraries\glad\include\KHR\khrplatform.h"
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void mouse_callback(GLFWwindow* window, int button, int action, int bits);
@@ -214,6 +215,9 @@ public:
 		}
 	}
 
+	static constexpr unsigned char REQUEST_READY = 1 << 7;
+	static constexpr unsigned char REQUEST_HOLD  = 1 << 6;
+
 	void run() {
 
 		while (!glfwWindowShouldClose(glfwWindow)) {
@@ -223,13 +227,24 @@ public:
 			// only update the game if the game is not paused
 			if (resetPauseTimer < 0) {
 				
-				if (!port->readByte(byte)) {
-					memset(byte, 0, sizeof(byte) / sizeof(char));
+				unsigned char response = 0;
+
+				// send a ready request to the arduino to send its data
+				if (port->writeByte(REQUEST_READY)) {
+
+					// then read the reponsse
+
+					if (!port->readByte(&response)) {
+						response = 0;
+					}
 				}
 
-				this->update(::byteToInputData(byte[0]));
+				this->update(::byteToInputData(response));
 			}
 			else {
+				// send a hold request to the arduino to not send data
+				port->writeByte(REQUEST_HOLD);
+
 				resetPauseTimer -= timeStep;
 			}
 
@@ -240,12 +255,6 @@ public:
 
 			frameTime = t2 - t1;
 			timeStep = (float)std::chrono::duration_cast<std::chrono::milliseconds>(frameTime).count() / 1000;
-
-			
-
-			//if (frameTime < maxFrameTime) {
-			//	std::this_thread::sleep_for(maxFrameTime - frameTime);
-			//}
 		}
 	}
 	
@@ -264,11 +273,10 @@ private:
 
 	void update(InputData data) {
 
-		if (data.resetPressed) {
+		if (data.Reset) {
 			// reset points and reset the game
 			player1Points = player2Points = 0;
-
-			reset();
+			Reset();
 		}
 
 		// update velocities
@@ -287,10 +295,10 @@ private:
 		}
 
 		// update the player accordingly
-		if (data.p1UpPressed) {
+		if (data.P1Up) {
 			player1->pos.y += playerSpeed * timeStep * multiplier;
 		}
-		if (data.p1DownPressed) {
+		if (data.P1Down) {
 			player1->pos.y -= playerSpeed * timeStep * multiplier;
 		}
 		
@@ -306,10 +314,10 @@ private:
 		}
 
 		// update the player accordingly
-		if (data.p2UpPressed) {
+		if (data.P2Up) {
 			player2->pos.y += playerSpeed * timeStep;
 		}
-		if (data.p2DownPressed) {
+		if (data.P2Down) {
 			player2->pos.y -= playerSpeed * timeStep;
 		}
 
@@ -395,10 +403,10 @@ private:
 			std::cout << "Player 2 wins\n";
 			player1Points = player2Points = 0;
 		}
-		reset();
+		Reset();
 	}
 
-	void reset() {
+	void Reset() {
 		// reset the game, wait then place the ball again
 		ball->pos = glm::vec2{};
 
@@ -407,12 +415,11 @@ private:
 
 		player1->pos.y = player2->pos.y = 0;
 
+		timeStep = 0;
 		resetPauseTimer = resetPauseTime;
 	}
 
 private:
-
-
 
 	std::random_device rd;
 	std::mt19937 gen = std::mt19937(rd());
@@ -443,8 +450,6 @@ private:
 	float playerSpeed;
 	float ballSpeed;
 	float ballSpeedMultiplier;
-
-	char byte[8] = {};
 
 	SerialPort* port;
 	GLFWwindow* glfwWindow;
