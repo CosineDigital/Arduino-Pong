@@ -2,8 +2,8 @@
 
 #include <glm/glm.hpp>
 
-#include "shader_program.h"
-#include "../core/camera.h"
+#include "shader_program.hpp"
+#include "../core/camera.hpp"
 
 class LineRenderer final {
 

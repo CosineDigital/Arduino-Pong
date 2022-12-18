@@ -27,18 +27,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\AABB.hpp" />
-    <ClInclude Include="src\core\Ball.hpp" />
-    <ClInclude Include="src\app\Game.hpp" />
-    <ClInclude Include="src\core\camera.h" />
-    <ClInclude Include="src\graphics\line_renderer.h" />
-    <ClInclude Include="src\graphics\renderer.h" />
-    <ClInclude Include="src\graphics\shader.h" />
-    <ClInclude Include="src\graphics\shader_program.h" />
-    <ClInclude Include="src\graphics\sprite.h" />
-    <ClInclude Include="src\graphics\sprite_sheet.h" />
-    <ClInclude Include="src\graphics\vertex.h" />
-    <ClInclude Include="src\input\InputData.hpp" />
-    <ClInclude Include="src\input\SerialPort.hpp" />
+    <ClInclude Include="src\core\ball.hpp" />
+    <ClInclude Include="src\app\game.hpp" />
+    <ClInclude Include="src\core\camera.hpp" />
+    <ClInclude Include="src\graphics\line_renderer.hpp" />
+    <ClInclude Include="src\graphics\renderer.hpp" />
+    <ClInclude Include="src\graphics\shader.hpp" />
+    <ClInclude Include="src\graphics\shader_program.hpp" />
+    <ClInclude Include="src\graphics\sprite.hpp" />
+    <ClInclude Include="src\graphics\sprite_sheet.hpp" />
+    <ClInclude Include="src\graphics\vertex.hpp" />
+    <ClInclude Include="src\input\input_data.hpp" />
+    <ClInclude Include="src\input\serial_port.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\camera.cpp" />

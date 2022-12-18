@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "camera.hpp"
 
 Camera::Camera(const glm::vec3& position_,
                const glm::vec3& worldUp_,

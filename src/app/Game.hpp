@@ -16,10 +16,10 @@
 #include <KHR/khrplatform.h>
 #include <glm/glm.hpp>
 
-#include "../input/InputData.hpp"
-#include "../graphics/renderer.h"
+#include "../input/input_data.hpp"
+#include "../graphics/renderer.hpp"
 #include "../core/Ball.hpp"
-#include "../input/SerialPort.hpp"
+#include "../input/serial_port.hpp"
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void mouse_callback(GLFWwindow* window, int button, int action, int bits);

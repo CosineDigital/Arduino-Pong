@@ -8,7 +8,7 @@
 #include <KHR/khrplatform.h>
 #include <glm/glm.hpp>
 
-#include "shader.h"
+#include "shader.hpp"
 
 class ShaderProgram
 {

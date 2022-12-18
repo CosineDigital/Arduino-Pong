@@ -8,11 +8,11 @@
 #include <KHR/khrplatform.h>
 #include <glm/glm.hpp>
 
-#include "../graphics/shader_program.h"
-#include "../graphics/sprite_sheet.h"
-#include "../graphics/sprite.h"
-#include "../graphics/vertex.h"
-#include "../core/camera.h"
+#include "../graphics/shader_program.hpp"
+#include "../graphics/sprite_sheet.hpp"
+#include "../graphics/sprite.hpp"
+#include "../graphics/vertex.hpp"
+#include "../core/camera.hpp"
 
 class Renderer
 {

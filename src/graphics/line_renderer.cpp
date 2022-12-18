@@ -1,4 +1,4 @@
-#include "line_renderer.h"
+#include "line_renderer.hpp"
 
 #define MAX_LINES 1000
 

@@ -1,4 +1,4 @@
-#include "renderer.h"
+#include "renderer.hpp"
 
 /**
 * @brief Creates the indices for a Quad in an index buffer

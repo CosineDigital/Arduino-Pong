@@ -1,4 +1,4 @@
-#include "shader_program.h"
+#include "shader_program.hpp"
 
 /**
 * @brief constructor for a shader program

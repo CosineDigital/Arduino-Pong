@@ -25,40 +25,40 @@
     <ClInclude Include="src\core\AABB.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\input\InputData.hpp">
+    <ClInclude Include="src\input\input_data.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\input\SerialPort.hpp">
+    <ClInclude Include="src\input\serial_port.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\Game.hpp">
+    <ClInclude Include="src\app\game.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\Ball.hpp">
+    <ClInclude Include="src\core\ball.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\camera.h">
+    <ClInclude Include="src\core\camera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\line_renderer.h">
+    <ClInclude Include="src\graphics\line_renderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\renderer.h">
+    <ClInclude Include="src\graphics\renderer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\shader.h">
+    <ClInclude Include="src\graphics\shader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\shader_program.h">
+    <ClInclude Include="src\graphics\shader_program.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\sprite.h">
+    <ClInclude Include="src\graphics\sprite.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\sprite_sheet.h">
+    <ClInclude Include="src\graphics\sprite_sheet.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\vertex.h">
+    <ClInclude Include="src\graphics\vertex.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

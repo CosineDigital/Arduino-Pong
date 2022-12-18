@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-#include "sprite_sheet.h"
+#include "sprite_sheet.hpp"
 
 struct Sprite
 {
