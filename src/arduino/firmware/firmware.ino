@@ -44,7 +44,7 @@ void loop()
       // send a single byte to the computer if it's ready
       Serial.write(response);
     }
-    else { //response == hold
+    else { //response == REQUEST_HOLD   
       // do nothing
     }
   }

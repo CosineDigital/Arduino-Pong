@@ -32,19 +32,17 @@ class Game final {
 
 public:
 	Game() {
+		port = new SerialPort();
+
 		ball = new Ball();
 
 		player1 = new AABB();
 		player2 = new AABB();
-		goal1 = new AABB();
-		goal2 = new AABB();
 
 		top = new AABB();
 		bottom = new AABB();
 
-		port = new SerialPort();
-
-		aabbs = { player1, player2, top, bottom, goal1, goal2 };
+		aabbs = { player1, player2, top, bottom };
 	}
 
 	int init() {
@@ -80,8 +78,8 @@ public:
 			if (port->init(portName)) {
 
 				// set up the game
-				width = stoi(config["game-width"]);
-				height = stoi(config["game-height"]);
+				width = stoi(config["game-dim-x"]);
+				height = stoi(config["game-dim-y"]);
 				pointsToWin = stoi(config["points-to-win"]);
 				pointsPerGoal = stoi(config["points-per-goal"]);
 
@@ -93,29 +91,30 @@ public:
 				ball->dim.y = stof(config["ball-radius"]);
 				ball->dim.x = stof(config["ball-radius"]);
 
-				player1->dim.x = stof(config["player-width"]);
-				player1->dim.y = stof(config["player-height"]);
-				player1->pos.x = -stof(config["player-offset"]);
+				player1->dim.x = stof(config["player-dim-x"]);
+				player1->dim.y = stof(config["player-dim-y"]);
+				player1->pos.x = -stof(config["player-offset-x"]);
+				player1->is_player = true;
 
-				player2->dim.x = stof(config["player-width"]);
-				player2->dim.y = stof(config["player-height"]);
-				player2->pos.x = +stof(config["player-offset"]);
+				player2->dim.x = stof(config["player-dim-x"]);
+				player2->dim.y = stof(config["player-dim-y"]);
+				player2->pos.x = +stof(config["player-offset-x"]);
+				player2->is_player = true;
 
 				// set up walls
+				top->pos.y = +stof(config["wall-offset-y"]);
+				top->dim.x = stof(config["wall-dim-x"]);
+				top->dim.y = stof(config["wall-dim-y"]);
 
-				top->pos.y = +stof(config["wall-offset"]);
-				top->dim.x = stof(config["wall-width"]);
-				top->dim.y = stof(config["wall-height"]);
-
-				bottom->pos.y = -stof(config["wall-offset"]);
-				bottom->dim.x = stof(config["wall-width"]);
-				bottom->dim.y = stof(config["wall-height"]);
+				bottom->pos.y = -stof(config["wall-offset-y"]);
+				bottom->dim.x = stof(config["wall-dim-x"]);
+				bottom->dim.y = stof(config["wall-dim-y"]);
 
 				bool spawnOtherWalls = stoi(config["spawn-other-walls"]);
 				float otherWallOffsetX = stof(config["other-wall-offset-x"]);
 				float otherWallOffsetY = stof(config["other-wall-offset-y"]);
-				float otherWallWidth = stof(config["other-wall-width"]);
-				float otherWallHeight = stof(config["other-wall-height"]);
+				float otherWallWidth = stof(config["other-wall-dim-x"]);
+				float otherWallHeight = stof(config["other-wall-dim-y"]);
 				if (spawnOtherWalls) {
 					// spawn four walls in the corners of the game
 					for (int i = -1; i < 2; i += 2) {
@@ -134,15 +133,18 @@ public:
 				// by default have a pause before starting the game
 				resetPauseTimer = resetPauseTime;
 
+				AABB* goal1 = new AABB();
+				AABB* goal2 = new AABB();
+
 				// goal 1
 				goal1->is_trigger = true;
 				goal1->trigger_callback = [&]() {
 					player2Points += pointsPerGoal;
 					onGoal();
 				};
-				goal1->dim.x = stof(config["goal-width"]);
-				goal1->dim.y = stof(config["goal-height"]);
-				goal1->pos.x = -stof(config["goal-offset"]);
+				goal1->dim.x = stof(config["goal-dim-x"]);
+				goal1->dim.y = stof(config["goal-dim-y"]);
+				goal1->pos.x = -stof(config["goal-offset-x"]);
 
 				// goal 2
 				goal2->is_trigger = true;
@@ -150,16 +152,34 @@ public:
 					player1Points += pointsPerGoal;
 					onGoal();
 				};
-				goal2->dim.x = stof(config["goal-width"]);
-				goal2->dim.y = stof(config["goal-height"]);
-				goal2->pos.x = +stof(config["goal-offset"]);
+				goal2->dim.x = stof(config["goal-dim-x"]);
+				goal2->dim.y = stof(config["goal-dim-y"]);
+				goal2->pos.x = +stof(config["goal-offset-x"]);
 
+				aabbs.push_back(goal1);
+				aabbs.push_back(goal2);
 
-				// set up ball
-				// give a random velocity
+				// set up the text
+				float textOffsetX = stof(config["text-offset-x"]);
+				float textOffsetY = stof(config["text-offset-y"]);
+				float textWidth = stof(config["text-dim-x"]);
+				float textHeight = stof(config["text-dim-y"]);
+				// left -> right, first left
+				for (int i = -1; i < 2; i += 2) {
+					for (int j = -1; j < 2; j += 2) {
+						AABB* text = new AABB();
+							
+						float middle = i * textOffsetX - textWidth;
 
-				float a = randomAngle();
-				ball->vel = {ballSpeed * std::cosf(a), ballSpeed * std::sinf(a)};
+						text->dim = { textWidth, textHeight };
+						text->pos = {
+							middle + j * textWidth,
+							textOffsetY
+						};
+
+						texts.push_back(text);
+					}
+				}
 
 
 				// set up opengl context
@@ -220,6 +240,8 @@ public:
 
 	void run() {
 
+		Reset();
+
 		while (!glfwWindowShouldClose(glfwWindow)) {
 
 			t1 = std::chrono::high_resolution_clock::now();
@@ -263,6 +285,9 @@ public:
 		for (auto* aabb : aabbs) {
 			delete aabb;
 		}
+		for (auto* text : texts) {
+			delete text;
+		}
 
 		delete camera, renderer, port;
 
@@ -277,48 +302,9 @@ private:
 			// reset points and reset the game
 			player1Points = player2Points = 0;
 			Reset();
-		}
 
-		// update velocities
-
-		float multiplier = 1;
-
-		// player 1, the left player
-		// first check if we can move up anymore
-		if (player1->pos.y <  1 - top->dim.y - player1->dim.y &&
-			player1->pos.y > -1 + top->dim.y + player1->dim.y)
-		{
-			multiplier = 1;
-		}
-		else {
-			multiplier = -1;
-		}
-
-		// update the player accordingly
-		if (data.P1Up) {
-			player1->pos.y += playerSpeed * timeStep * multiplier;
-		}
-		if (data.P1Down) {
-			player1->pos.y -= playerSpeed * timeStep * multiplier;
-		}
-		
-
-		// player 2, the right player
-		// first check if we can move up anymore
-		if (player2->pos.y <  1 - top->dim.y - player1->dim.y &&
-			player2->pos.y > -1 + top->dim.y + player1->dim.y) {
-			multiplier = 1;
-		}
-		else {
-			multiplier = -1;
-		}
-
-		// update the player accordingly
-		if (data.P2Up) {
-			player2->pos.y += playerSpeed * timeStep;
-		}
-		if (data.P2Down) {
-			player2->pos.y -= playerSpeed * timeStep;
+			// don't do anything else
+			return;
 		}
 
 
@@ -327,8 +313,7 @@ private:
 
 			Collision collision = ball->checkCollision(aabb, timeStep);
 
-			// same as collisiondirection == none
-			if (collision.time < 1.f) {
+			if (collision.time < 1) {
 				// if it's a goal, then call the callback
 				if (aabb->is_trigger) {
 					aabb->trigger_callback();
@@ -336,7 +321,51 @@ private:
 				}
 
 				// else, get the direction and handle the ball
-				switch (collision.direction) {
+				if (aabb->is_player) {
+					// player collisions deflect the ball at an angle
+
+					// vector pointing towards the center of the ball
+					glm::vec2 offset = ball->pos - aabb->pos;
+					// [-pi, pi]
+					float angle = std::atan2f(offset.y, offset.x);
+					std::cout << "Angle " << angle << std::endl;
+
+					float l = std::sqrt(ball->vel.x * ball->vel.x + ball->vel.y * ball->vel.y);
+					// TODO: fix
+					switch (collision.direction) {
+					case CollisionDirection::RIGHT:
+						std::cout << "right\n";
+
+						ball->vel.x = std::cosf(angle) * l;
+						ball->vel.y = std::sinf(angle) * l;
+
+						break;
+					case CollisionDirection::BOTTOM:
+						std::cout << "bottom\n";
+
+						ball->vel.x = std::cosf(angle) * l;
+						ball->vel.y = std::sinf(angle) * l;
+
+						break;
+					case CollisionDirection::LEFT:
+						std::cout << "left\n";
+
+						ball->vel.x = std::cosf(angle) * l;
+						ball->vel.y = std::sinf(angle) * l;
+
+						break;
+					case CollisionDirection::TOP:
+						std::cout << "top\n";
+
+						ball->vel.x = std::cosf(angle) * l;
+						ball->vel.y = std::sinf(angle) * l;
+
+						break;
+					}
+				}
+				else {
+					// walls reflect the ball perfectly
+					switch (collision.direction) {
 					case CollisionDirection::RIGHT:
 						ball->vel.x *= -1;
 						break;
@@ -349,10 +378,8 @@ private:
 					case CollisionDirection::TOP:
 						ball->vel.y *= -1;
 						break;
+					}
 				}
-
-				// TODO: more advanced collision and angles
-
 
 				// on collision increase the speed
 				ball->vel *= ballSpeedMultiplier;
@@ -361,21 +388,81 @@ private:
 		
 		// update ball
 		ball->pos += ball->vel * timeStep;
+
+
+		// player 1, the left player
+		bool belowTop;
+		bool aboveBottom;
+
+		// check player 1
+		aboveBottom = player1->pos.y >= bottom->pos.y + bottom->dim.y + player1->dim.y;
+		belowTop = player1->pos.y <= top->pos.y - top->dim.y - player1->dim.y;
+
+		if (aboveBottom && belowTop) {
+			// move like usual
+			if (data.P1Up) {
+				player1->pos.y += playerSpeed * timeStep;
+			}
+			if (data.P1Down) {
+				player1->pos.y -= playerSpeed * timeStep;
+			}
+
+		}
+		else if (!aboveBottom) {
+			player1->pos.y = bottom->pos.y + bottom->dim.y + player1->dim.y;
+		}
+		else if (!belowTop) {
+			player1->pos.y = top->pos.y - top->dim.y - player1->dim.y;
+		}
+
+
+		// check player 2
+		aboveBottom = player2->pos.y >= bottom->pos.y + bottom->dim.y + player2->dim.y;
+		belowTop = player2->pos.y <= top->pos.y - top->dim.y - player2->dim.y;
+
+		if (aboveBottom && belowTop) {
+			// move like usual
+			if (data.P2Up) {
+				player2->pos.y += playerSpeed * timeStep;
+			}
+			if (data.P2Down) {
+				player2->pos.y -= playerSpeed * timeStep;
+			}
+
+		}
+		else if (!aboveBottom) {
+			player2->pos.y = bottom->pos.y + bottom->dim.y + player2->dim.y;
+		}
+		else if (!belowTop) {
+			player2->pos.y = top->pos.y - top->dim.y - player2->dim.y;
+		}
 	}
 
 	void draw(void) {
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		// draw scores: player 1
+		if (player1Points > 9) {
+			renderer->bufferQuad(texts[0], player1Points / 10);
+		}
+		renderer->bufferQuad(texts[1], player1Points % 10);
+
+		if (player2Points > 9) {
+			renderer->bufferQuad(texts[2], player2Points / 10);
+		}
+		renderer->bufferQuad(texts[3], player2Points % 10);
+
+
 		// create objects on screen:
-		renderer->bufferQuad(ball->pos, ball->dim);
+		renderer->bufferQuad(ball, 10);
 
 		for (auto* aabb : aabbs) {
 			// don't draw goals
 			if (aabb->is_trigger) {
 				continue;
 			}
-			renderer->bufferQuad(aabb->pos, aabb->dim);
+			renderer->bufferQuad(aabb, 10);
 		}
 
 		renderer->render(camera);
@@ -390,8 +477,9 @@ private:
 		return randomEngine(gen);
 	}
 
+	// @return an angle in radians [0, pi]
 	inline float randomAngle() noexcept {
-		return randomUnit() * 6.283185307179586476925286766559f;
+		return randomUnit() * 3.1415926535897932384626433832795f;
 	}
 
 	void onGoal() noexcept {
@@ -410,8 +498,11 @@ private:
 		// reset the game, wait then place the ball again
 		ball->pos = glm::vec2{};
 
-		float a = randomAngle();
-		ball->vel = { ballSpeed * std::cosf(a), ballSpeed * std::sinf(a) };
+		// ball can only fly off in certain directions
+		float multiplier = randomUnit() - 0.5f;
+
+		float angle = randomAngle() * multiplier;
+		ball->vel = { ballSpeed * std::cosf(angle), ballSpeed * std::sinf(angle) };
 
 		player1->pos.y = player2->pos.y = 0;
 
@@ -428,10 +519,10 @@ private:
 	AABB* player1, * player2;
 	Ball* ball;
 	AABB* bottom, * top;
-	AABB* goal1, * goal2;
 
 	int player1Points, player2Points;
 
+	std::vector<AABB*> texts;
 	std::vector<AABB*> aabbs;
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;

@@ -55,7 +55,7 @@ void Renderer::createQuadVertices(const Sprite* sprite, glm::vec2 origin) noexce
     vertexData[count * 4 + 3] = { {origin.x + width, origin.y}, {sprite->bottomRight} };
 }
 
-void Renderer::createQuadVertices(glm::vec2 pos, glm::vec2 dim) noexcept {
+void Renderer::createQuadVertices(const Sprite* sprite, AABB* aabb) noexcept {
     /**
     * @note - Fill the vertex data
     * @index 0 - the Top Left of the quad
@@ -64,10 +64,10 @@ void Renderer::createQuadVertices(glm::vec2 pos, glm::vec2 dim) noexcept {
     * @index 3 - the Bottom Right of the quad
     */
     
-    vertexData[count * 4 + 0] = { {pos.x - dim.x, pos.y + dim.y}, {0, 0} };
-    vertexData[count * 4 + 1] = { {pos.x + dim.x, pos.y + dim.y}, {0, 0} };
-    vertexData[count * 4 + 2] = { {pos.x - dim.x, pos.y - dim.y}, {0, 0} };
-    vertexData[count * 4 + 3] = { {pos.x + dim.x, pos.y - dim.y}, {0, 0} };
+    vertexData[count * 4 + 0] = { {aabb->pos.x - aabb->dim.x, aabb->pos.y + aabb->dim.y}, sprite->topLeft };
+    vertexData[count * 4 + 1] = { {aabb->pos.x + aabb->dim.x, aabb->pos.y + aabb->dim.y}, sprite->topRight };
+    vertexData[count * 4 + 2] = { {aabb->pos.x - aabb->dim.x, aabb->pos.y - aabb->dim.y}, sprite->bottomLeft };
+    vertexData[count * 4 + 3] = { {aabb->pos.x + aabb->dim.x, aabb->pos.y - aabb->dim.y}, sprite->bottomRight };
 }
 
 Renderer::Renderer() : count(0u), vertexData(nullptr), indexData(nullptr)
@@ -77,6 +77,23 @@ Renderer::Renderer() : count(0u), vertexData(nullptr), indexData(nullptr)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glClearColor(142.f / 255.f, 144.f / 255.f, 253.f / 255.f, 1.0f);
     glClearColor(0, 0, 0, 1);
+
+    sprites = new Sprite[11];
+
+    // each number
+    sprites[0] = createSprite(&mSpriteSheet, 0 * 7, 0, 7, 13);
+    sprites[1] = createSprite(&mSpriteSheet, 1 * 7, 0, 7, 13);
+    sprites[2] = createSprite(&mSpriteSheet, 2 * 7, 0, 7, 13);
+    sprites[3] = createSprite(&mSpriteSheet, 3 * 7, 0, 7, 13);
+    sprites[4] = createSprite(&mSpriteSheet, 4 * 7, 0, 7, 13);
+    sprites[5] = createSprite(&mSpriteSheet, 5 * 7, 0, 7, 13);
+    sprites[6] = createSprite(&mSpriteSheet, 6 * 7, 0, 7, 13);
+    sprites[7] = createSprite(&mSpriteSheet, 7 * 7, 0, 7, 13);
+    sprites[8] = createSprite(&mSpriteSheet, 8 * 7, 0, 7, 13);
+    sprites[9] = createSprite(&mSpriteSheet, 9 * 7, 0, 7, 13);
+
+    // color white
+    sprites[10] = createSprite(&mSpriteSheet, 71, 1, 2, 2);
 
     mShader = ShaderProgram("resources/shaders/textured/vertex.txt", "resources/shaders/textured/fragment.txt");
     
@@ -165,10 +182,10 @@ void Renderer::buffer(glm::vec2 position, uint32_t spriteIndex) noexcept
     this->count++;
 }
 
-void Renderer::bufferQuad(glm::vec2 pos, glm::vec2 dim) noexcept 
+void Renderer::bufferQuad(AABB* aabb, unsigned int spriteIndex) noexcept 
 {
     createQuadIndices();
-    createQuadVertices(pos, dim);
+    createQuadVertices(&sprites[spriteIndex], aabb);
 
     this->count++;
 }

@@ -29,10 +29,12 @@ public:
 			dxExit = (other->pos.x - other->dim.x) - (pos.x + dim.x);
 		}
 
-		// dir in y going to left
+		// dir in y going up
 		if (this->vel.y > 0) {
 			dyEntry = +(other->pos.y - other->dim.y) - (pos.y + dim.y);
 			dyExit = +(other->pos.y + other->dim.y) - (pos.y - dim.y);
+
+
 		}
 		else { // going down
 			dyEntry = +(other->pos.y + other->dim.y) - (pos.y - dim.y);
@@ -66,33 +68,34 @@ public:
 		float time{};
 
 		if (entryTime > exitTime || (txentry < 0 && tyentry < 0) || txentry > ts || tyentry > ts) {
+			// there is no collision
 			time = 1;
 		}
 		else {
 			time = entryTime;
 		}
-
+		
 		CollisionDirection dir{};
 
 		if (txentry > tyentry) {
 			if (dxEntry > 0) {
-				dir = CollisionDirection::RIGHT;
-
-			}
-			else {
 				dir = CollisionDirection::LEFT;
 
 			}
+			else {
+				dir = CollisionDirection::RIGHT;
+
+			}
 		}
-		else {
+		else { // tyentry < txentry
 			if (dyEntry > 0) {
-				dir = CollisionDirection::TOP;
+				dir = CollisionDirection::BOTTOM;
 			}
 			else {
-				dir = CollisionDirection::BOTTOM;
+				dir = CollisionDirection::TOP;
 			}
 		}
 
-		return {dir, time};
+		return { dir, time };
 	}
 };

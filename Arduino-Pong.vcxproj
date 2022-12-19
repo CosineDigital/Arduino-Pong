@@ -41,17 +41,14 @@
     <ClInclude Include="src\input\serial_port.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\C++ Libraries\glad\glad.c" />
     <ClCompile Include="src\core\camera.cpp" />
     <ClCompile Include="src\app\main.cpp" />
-    <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\graphics\line_renderer.cpp" />
     <ClCompile Include="src\graphics\renderer.cpp" />
     <ClCompile Include="src\graphics\shader.cpp" />
     <ClCompile Include="src\graphics\shader_program.cpp" />
     <ClCompile Include="src\graphics\stb_implementation\stb_implementation.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="lib\GLFW\glfw3dll.lib" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="resources\shaders\line\fragment.txt" />
@@ -64,7 +61,10 @@
     <Text Include="resources\shaders\textured\vertex.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="resources\sprites\sprites.png" />
+    <Library Include="..\..\..\..\..\..\C++ Libraries\glfw-3.3.2.bin.WIN64\glfw-3.3.2.bin.WIN64\lib\GLFW\glfw3dll.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

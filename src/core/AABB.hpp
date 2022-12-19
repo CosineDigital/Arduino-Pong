@@ -5,10 +5,12 @@
 class AABB {
 public:
 	bool is_trigger;
+	bool is_player;
 	std::function<void()> trigger_callback;
 
 	AABB() {
 		is_trigger = false;
+		is_player = false;
 		dim = {};
 		pos = {};
 	}

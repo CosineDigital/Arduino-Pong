@@ -13,6 +13,7 @@
 #include "../graphics/sprite.hpp"
 #include "../graphics/vertex.hpp"
 #include "../core/camera.hpp"
+#include "../core/AABB.hpp"
 
 class Renderer
 {
@@ -23,7 +24,7 @@ public:
     ~Renderer() noexcept;
 
     void buffer(glm::vec2 position, uint32_t spriteIndex) noexcept;
-    void bufferQuad(glm::vec2 pos, glm::vec2 dim) noexcept;
+    void bufferQuad(AABB* aabb, unsigned int spriteIndex) noexcept;
 
     void clear() noexcept;
 
@@ -38,7 +39,7 @@ private:
     void createQuadIndices() noexcept;
     void createQuadVertices(const Sprite* sprite, glm::vec2 origin) noexcept;
 
-    void createQuadVertices(glm::vec2 pos, glm::vec2 dim) noexcept;
+    void createQuadVertices(const Sprite* sprite, AABB* aabb) noexcept;
 
 private:
 
@@ -61,7 +62,7 @@ private:
     GLuint* indexData;
 
     // TODO fix
-    SpriteSheet mSpriteSheet = loadSpriteSheet("resources/sprites/sprites.png");
+    SpriteSheet mSpriteSheet = loadSpriteSheet("resources/textures/.png");
 
     Sprite* sprites;
     int spriteCount;

@@ -84,12 +84,9 @@
     <ClCompile Include="src\graphics\shader_program.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\glad.c">
+    <ClCompile Include="..\..\..\..\..\..\C++ Libraries\glad\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="lib\GLFW\glfw3dll.lib" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="resources\shaders\point\fragment.txt" />
@@ -102,7 +99,10 @@
     <Text Include="resources\shaders\textured\vertex.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="resources\sprites\sprites.png">
+    <Library Include="..\..\..\..\..\..\C++ Libraries\glfw-3.3.2.bin.WIN64\glfw-3.3.2.bin.WIN64\lib\GLFW\glfw3dll.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\textures\.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
