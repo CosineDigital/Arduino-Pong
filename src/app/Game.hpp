@@ -20,6 +20,7 @@
 #include "../graphics/renderer.hpp"
 #include "../core/Ball.hpp"
 #include "../input/serial_port.hpp"
+#include "../input/config.hpp"
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void mouse_callback(GLFWwindow* window, int button, int action, int bits);
@@ -27,6 +28,12 @@ static void keyboard_callback(GLFWwindow* window, int key, int scancode, int act
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 static void cursor_callback(GLFWwindow* window, double xpos, double ypos);
 static void glfw_error_callback(int error, const char* description);
+
+enum class WinState {
+	NONE,
+	P1Win,
+	P2Win
+};
 
 class Game final {
 
@@ -36,105 +43,100 @@ public:
 
 		ball = new Ball();
 
-		player1 = new AABB();
-		player2 = new AABB();
+		player1 = new Rect();
+		player2 = new Rect();
 
-		top = new AABB();
-		bottom = new AABB();
+		top = new Rect();
+		bottom = new Rect();
 
-		aabbs = { player1, player2, top, bottom };
+		background = new Rect();
+
+		rects = { player1, player2, top, bottom };
 	}
 
 	int init() {
 
-		// open config file
-		std::ifstream file("resources/config.csv");
-		if (file.is_open()) {
-			// get all data
-			std::map<std::string, std::string> config;
-			// assume csv structure: name, value
-			for (std::string line; std::getline(file, line, '\n');) {
-				// ignore comments
-				if (line.substr(0, 2) == "//")
-					continue;
+		Config config;
+		config.ignore(';');
 
-				int i = 0;
-				std::string name, value;
-				std::stringstream ss(line);
-				while (std::getline(ss, value, ',')) {
-					if (i++ == 0)
-						name = value;
-					else
-						config[name] = value;
-				}
-				ss.clear();
-			}
+		if (config.load("resources/config.txt")) {
 
 			// open port
 			// Set up the port for comminicating with the arduino
 			char portName[16] = { 0 };
-			sprintf_s(portName, "\\\\.\\COM%i", stoi(config["arduino-port"]));
+			sprintf_s(portName, "\\\\.\\COM%i", config.getInt("arduino-port"));
 
 			if (port->init(portName)) {
 
 				// set up the game
-				width = stoi(config["game-dim-x"]);
-				height = stoi(config["game-dim-y"]);
-				pointsToWin = stoi(config["points-to-win"]);
-				pointsPerGoal = stoi(config["points-per-goal"]);
+				width = config.getInt("game-dim-x");
+				height = config.getInt("game-dim-y");
+				pointsToWin = config.getInt("points-to-win");
+				pointsPerGoal = config.getInt("points-per-goal");
 
-				maxFrameTime = std::chrono::milliseconds(stoi(config["millis-per-frame"]));
-				playerSpeed = stof(config["player-speed"]);
-				ballSpeed = stof(config["ball-speed"]);
-				ballSpeedMultiplier = stof(config["ball-speed-multiplier"]);
+				maxFrameTime = std::chrono::milliseconds(config.getInt("millis-per-frame"));
+				playerSpeed = config.getFloat("player-speed");
+				ballSpeed = config.getFloat("ball-speed");
+				ballSpeedMultiplier = config.getFloat("ball-speed-multiplier");
 
-				ball->dim.y = stof(config["ball-radius"]);
-				ball->dim.x = stof(config["ball-radius"]);
+				background->pos = { 0, 0 };
+				background->dim = { 1, 1 };
 
-				player1->dim.x = stof(config["player-dim-x"]);
-				player1->dim.y = stof(config["player-dim-y"]);
-				player1->pos.x = -stof(config["player-offset-x"]);
+				ball->dim.y = config.getFloat("ball-radius");
+				ball->dim.x = config.getFloat("ball-radius");
+
+				ballColor = config.getInt("ball-color");
+
+				player1->dim.x = config.getFloat("player-dim-x");
+				player1->dim.y = config.getFloat("player-dim-y");
+				player1->pos.x = -config.getFloat("player-offset-x");
 				player1->is_player = true;
+				P1Color = config.getInt("player-1-color");
 
-				player2->dim.x = stof(config["player-dim-x"]);
-				player2->dim.y = stof(config["player-dim-y"]);
-				player2->pos.x = +stof(config["player-offset-x"]);
+				player2->dim.x = config.getFloat("player-dim-x");
+				player2->dim.y = config.getFloat("player-dim-y");
+				player2->pos.x = +config.getFloat("player-offset-x");
 				player2->is_player = true;
+				P2Color = config.getInt("player-2-color");
 
 				// set up walls
-				top->pos.y = +stof(config["wall-offset-y"]);
-				top->dim.x = stof(config["wall-dim-x"]);
-				top->dim.y = stof(config["wall-dim-y"]);
+				top->pos.y = +config.getFloat("wall-offset-y");
+				top->dim.x = config.getFloat("wall-dim-x");
+				top->dim.y = config.getFloat("wall-dim-y");
 
-				bottom->pos.y = -stof(config["wall-offset-y"]);
-				bottom->dim.x = stof(config["wall-dim-x"]);
-				bottom->dim.y = stof(config["wall-dim-y"]);
+				bottom->pos.y = -config.getFloat("wall-offset-y");
+				bottom->dim.x = config.getFloat("wall-dim-x");
+				bottom->dim.y = config.getFloat("wall-dim-y");
 
-				bool spawnOtherWalls = stoi(config["spawn-other-walls"]);
-				float otherWallOffsetX = stof(config["other-wall-offset-x"]);
-				float otherWallOffsetY = stof(config["other-wall-offset-y"]);
-				float otherWallWidth = stof(config["other-wall-dim-x"]);
-				float otherWallHeight = stof(config["other-wall-dim-y"]);
+				bool spawnOtherWalls = config.getInt("spawn-other-walls");
+				float otherWallOffsetX = config.getFloat("other-wall-offset-x");
+				float otherWallOffsetY = config.getFloat("other-wall-offset-y");
+				float otherWallWidth = config.getFloat("other-wall-dim-x");
+				float otherWallHeight = config.getFloat("other-wall-dim-y");
 				if (spawnOtherWalls) {
 					// spawn four walls in the corners of the game
 					for (int i = -1; i < 2; i += 2) {
 						for (int j = -1; j < 2; j += 2) {
-							AABB* otherWall = new AABB();
+							Rect* otherWall = new Rect();
 
 							otherWall->dim = { otherWallWidth, otherWallHeight };
 							otherWall->pos = { otherWallOffsetX * i, otherWallOffsetY * j};
-							aabbs.push_back(otherWall);
+							rects.push_back(otherWall);
 						}
 					}
 				}
 
+				wallColor = config.getInt("wall-color");
+
 				// pause time between goals and after reset
-				resetPauseTime = stof(config["reset-pause-time"]);
+				resetPauseTime = config.getFloat("reset-pause-time");
 				// by default have a pause before starting the game
 				resetPauseTimer = resetPauseTime;
 
-				AABB* goal1 = new AABB();
-				AABB* goal2 = new AABB();
+				winstate = WinState::NONE;
+
+				Rect* goal1 = new Rect();
+				Rect* goal2 = new Rect();
 
 				// goal 1
 				goal1->is_trigger = true;
@@ -142,9 +144,9 @@ public:
 					player2Points += pointsPerGoal;
 					onGoal();
 				};
-				goal1->dim.x = stof(config["goal-dim-x"]);
-				goal1->dim.y = stof(config["goal-dim-y"]);
-				goal1->pos.x = -stof(config["goal-offset-x"]);
+				goal1->dim.x = config.getFloat("goal-dim-x");
+				goal1->dim.y = config.getFloat("goal-dim-y");
+				goal1->pos.x = -config.getFloat("goal-offset-x");
 
 				// goal 2
 				goal2->is_trigger = true;
@@ -152,22 +154,22 @@ public:
 					player1Points += pointsPerGoal;
 					onGoal();
 				};
-				goal2->dim.x = stof(config["goal-dim-x"]);
-				goal2->dim.y = stof(config["goal-dim-y"]);
-				goal2->pos.x = +stof(config["goal-offset-x"]);
+				goal2->dim.x = config.getFloat("goal-dim-x");
+				goal2->dim.y = config.getFloat("goal-dim-y");
+				goal2->pos.x = +config.getFloat("goal-offset-x");
 
-				aabbs.push_back(goal1);
-				aabbs.push_back(goal2);
+				rects.push_back(goal1);
+				rects.push_back(goal2);
 
 				// set up the text
-				float textOffsetX = stof(config["text-offset-x"]);
-				float textOffsetY = stof(config["text-offset-y"]);
-				float textWidth = stof(config["text-dim-x"]);
-				float textHeight = stof(config["text-dim-y"]);
+				float textOffsetX = config.getFloat("text-offset-x");
+				float textOffsetY = config.getFloat("text-offset-y");
+				float textWidth = config.getFloat("text-dim-x");
+				float textHeight = config.getFloat("text-dim-y");
 				// left -> right, first left
 				for (int i = -1; i < 2; i += 2) {
 					for (int j = -1; j < 2; j += 2) {
-						AABB* text = new AABB();
+						Rect* text = new Rect();
 							
 						float middle = i * textOffsetX - textWidth;
 
@@ -230,7 +232,7 @@ public:
 			}
 		}
 		else {
-			std::cerr << "Could not open config file\n";
+			std::cerr << "Could not load config file\n";
 			return 0;
 		}
 	}
@@ -248,7 +250,10 @@ public:
 
 			// only update the game if the game is not paused
 			if (resetPauseTimer < 0) {
-				
+
+				// reset winstate after pause timer has ended
+				winstate = WinState::NONE;
+
 				unsigned char response = 0;
 
 				// send a ready request to the arduino to send its data
@@ -282,9 +287,12 @@ public:
 	
 	~Game() {
 		delete ball;
-		for (auto* aabb : aabbs) {
+		for (auto* aabb : rects) {
 			delete aabb;
 		}
+
+		delete background;
+
 		for (auto* text : texts) {
 			delete text;
 		}
@@ -309,63 +317,43 @@ private:
 
 
 		// handle collisions between ball and the environment
-		for (auto* aabb : aabbs) {
+		for (auto* aabb : rects) {
 
-			Collision collision = ball->checkCollision(aabb, timeStep);
+			if (aabb->is_player) {
 
-			if (collision.time < 1) {
-				// if it's a goal, then call the callback
-				if (aabb->is_trigger) {
-					aabb->trigger_callback();
-					continue;
-				}
+				// use aabb collision detection for players
+				CollisionDirection direction = ball->checkCollisionAABB(aabb);
 
-				// else, get the direction and handle the ball
-				if (aabb->is_player) {
-					// player collisions deflect the ball at an angle
+				if (direction == CollisionDirection::UNKNOWN) {
+					// some sort of collision, use the angle
 
 					// vector pointing towards the center of the ball
 					glm::vec2 offset = ball->pos - aabb->pos;
 					// [-pi, pi]
 					float angle = std::atan2f(offset.y, offset.x);
-					std::cout << "Angle " << angle << std::endl;
 
 					float l = std::sqrt(ball->vel.x * ball->vel.x + ball->vel.y * ball->vel.y);
-					// TODO: fix
-					switch (collision.direction) {
-					case CollisionDirection::RIGHT:
-						std::cout << "right\n";
 
-						ball->vel.x = std::cosf(angle) * l;
-						ball->vel.y = std::sinf(angle) * l;
+					ball->vel.x = std::cosf(angle) * l;
+					ball->vel.y = std::sinf(angle) * l;
 
-						break;
-					case CollisionDirection::BOTTOM:
-						std::cout << "bottom\n";
-
-						ball->vel.x = std::cosf(angle) * l;
-						ball->vel.y = std::sinf(angle) * l;
-
-						break;
-					case CollisionDirection::LEFT:
-						std::cout << "left\n";
-
-						ball->vel.x = std::cosf(angle) * l;
-						ball->vel.y = std::sinf(angle) * l;
-
-						break;
-					case CollisionDirection::TOP:
-						std::cout << "top\n";
-
-						ball->vel.x = std::cosf(angle) * l;
-						ball->vel.y = std::sinf(angle) * l;
-
-						break;
-					}
+					// on collision increase the speed
+					ball->vel *= ballSpeedMultiplier;
 				}
-				else {
+			}
+			else {
+
+				// use swept collision for everything else
+				CollisionDirection direction = ball->checkCollisionSwept(aabb, timeStep);
+
+				if (direction != CollisionDirection::NONE) {
+					if (aabb->is_trigger) {
+						aabb->trigger_callback();
+						continue;
+					}
+
 					// walls reflect the ball perfectly
-					switch (collision.direction) {
+					switch (direction) {
 					case CollisionDirection::RIGHT:
 						ball->vel.x *= -1;
 						break;
@@ -379,10 +367,10 @@ private:
 						ball->vel.y *= -1;
 						break;
 					}
-				}
 
-				// on collision increase the speed
-				ball->vel *= ballSpeedMultiplier;
+					// on collision increase the speed
+					ball->vel *= ballSpeedMultiplier;
+				}
 			}
 		}
 		
@@ -440,30 +428,47 @@ private:
 
 	void draw(void) {
 
-		glClear(GL_COLOR_BUFFER_BIT);
+		// draw the background, so we don't need to clear the buffer
+		renderer->bufferQuad(background, 11);
 
-		// draw scores: player 1
-		if (player1Points > 9) {
-			renderer->bufferQuad(texts[0], player1Points / 10);
-		}
-		renderer->bufferQuad(texts[1], player1Points % 10);
+		// draw scores if no one has won
+		if (winstate == WinState::NONE) {
+			if (player1Points > 9) {
+				renderer->bufferQuad(texts[0], player1Points / 10);
+			}
+			renderer->bufferQuad(texts[1], player1Points % 10);
 
-		if (player2Points > 9) {
-			renderer->bufferQuad(texts[2], player2Points / 10);
+			if (player2Points > 9) {
+				renderer->bufferQuad(texts[2], player2Points / 10);
+			}
+			renderer->bufferQuad(texts[3], player2Points % 10);
 		}
-		renderer->bufferQuad(texts[3], player2Points % 10);
+		else if (winstate == WinState::P1Win) {
+			renderer->bufferQuad(texts[1], 18); // W (see renderer.cpp)
+			renderer->bufferQuad(texts[3], 19); // L
+		}
+		else if (winstate == WinState::P2Win) {
+			renderer->bufferQuad(texts[1], 19); // L
+			renderer->bufferQuad(texts[3], 18); // W
+		}
+		
 
 
 		// create objects on screen:
-		renderer->bufferQuad(ball, 10);
+		renderer->bufferQuad(ball, ballColor);
 
-		for (auto* aabb : aabbs) {
-			// don't draw goals
-			if (aabb->is_trigger) {
+		for (auto* rect : rects) {
+			// don't draw goals or players
+			if (rect->is_trigger || rect->is_player) {
 				continue;
 			}
-			renderer->bufferQuad(aabb, 10);
+
+			// draw the walls
+			renderer->bufferQuad(rect, wallColor);
 		}
+
+		renderer->bufferQuad(player1, P1Color);
+		renderer->bufferQuad(player2, P2Color);
 
 		renderer->render(camera);
 
@@ -484,11 +489,11 @@ private:
 
 	void onGoal() noexcept {
 		if (player1Points >= pointsToWin) {
-			std::cout << "Player 1 wins\n";
+			winstate = WinState::P1Win;
 			player1Points = player2Points = 0;
 		}
 		else if (player2Points >= pointsToWin) {
-			std::cout << "Player 2 wins\n";
+			winstate = WinState::P2Win;
 			player1Points = player2Points = 0;
 		}
 		Reset();
@@ -516,14 +521,19 @@ private:
 	std::mt19937 gen = std::mt19937(rd());
 	std::uniform_real_distribution<float> randomEngine = std::uniform_real_distribution<float>(0.f, 1.f);
 
-	AABB* player1, * player2;
+	Rect* player1, * player2;
 	Ball* ball;
-	AABB* bottom, * top;
+	Rect* bottom, * top;
+	Rect* background;
+
+	WinState winstate;
+
+	int P1Color, P2Color, ballColor, wallColor;
 
 	int player1Points, player2Points;
 
-	std::vector<AABB*> texts;
-	std::vector<AABB*> aabbs;
+	std::vector<Rect*> texts;
+	std::vector<Rect*> rects;
 
 	std::chrono::time_point<std::chrono::steady_clock> t1, t2;
 	std::chrono::nanoseconds frameTime;

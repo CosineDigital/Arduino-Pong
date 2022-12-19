@@ -1,8 +1,8 @@
 #pragma once
 
-#include "AABB.hpp"
+#include "rect.hpp"
 
-class Ball final : public AABB {
+class Ball final : public Rect {
 
 public:
 
@@ -12,7 +12,7 @@ public:
 		vel = {};
 	}
 
-	Collision checkCollision(AABB* other, float ts) const noexcept {
+	CollisionDirection checkCollisionSwept(Rect* other, float ts) const noexcept {
 
 		// distance to entry and exit
 		float dxEntry, dyEntry;
@@ -69,33 +69,38 @@ public:
 
 		if (entryTime > exitTime || (txentry < 0 && tyentry < 0) || txentry > ts || tyentry > ts) {
 			// there is no collision
-			time = 1;
+			return CollisionDirection::NONE;
 		}
 		else {
-			time = entryTime;
-		}
-		
-		CollisionDirection dir{};
+			if (txentry > tyentry) {
+				if (dxEntry > 0) {
+					return CollisionDirection::LEFT;
 
-		if (txentry > tyentry) {
-			if (dxEntry > 0) {
-				dir = CollisionDirection::LEFT;
+				}
+				else {
+					return CollisionDirection::RIGHT;
 
+				}
 			}
-			else {
-				dir = CollisionDirection::RIGHT;
-
-			}
-		}
-		else { // tyentry < txentry
-			if (dyEntry > 0) {
-				dir = CollisionDirection::BOTTOM;
-			}
-			else {
-				dir = CollisionDirection::TOP;
+			else { // tyentry < txentry
+				if (dyEntry > 0) {
+					return CollisionDirection::BOTTOM;
+				}
+				else {
+					return CollisionDirection::TOP;
+				}
 			}
 		}
+	}
 
-		return { dir, time };
+	CollisionDirection checkCollisionAABB(Rect* other) {
+
+		float left = other->left() - this->right();
+		float right = other->right() - this->left();
+		float top = other->top() - this->bottom();
+		float bottom = other->bottom() - this->top();
+
+		return !(left > 0 || right < 0 || top < 0 || bottom > 0) ? 
+			CollisionDirection::UNKNOWN : CollisionDirection::NONE;
 	}
 };

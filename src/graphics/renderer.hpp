@@ -13,7 +13,7 @@
 #include "../graphics/sprite.hpp"
 #include "../graphics/vertex.hpp"
 #include "../core/camera.hpp"
-#include "../core/AABB.hpp"
+#include "../core/rect.hpp"
 
 class Renderer
 {
@@ -24,7 +24,7 @@ public:
     ~Renderer() noexcept;
 
     void buffer(glm::vec2 position, uint32_t spriteIndex) noexcept;
-    void bufferQuad(AABB* aabb, unsigned int spriteIndex) noexcept;
+    void bufferQuad(Rect* aabb, unsigned int spriteIndex) noexcept;
 
     void clear() noexcept;
 
@@ -39,7 +39,7 @@ private:
     void createQuadIndices() noexcept;
     void createQuadVertices(const Sprite* sprite, glm::vec2 origin) noexcept;
 
-    void createQuadVertices(const Sprite* sprite, AABB* aabb) noexcept;
+    void createQuadVertices(const Sprite* sprite, Rect* aabb) noexcept;
 
 private:
 
@@ -49,7 +49,7 @@ private:
     ShaderProgram mShader;
 
     // TODO: make sure this is dynamic, in case we go over this limit
-    int mMaxQuads = 100;
+    int mMaxQuads = 15;
 
     int count;
 

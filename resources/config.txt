@@ -1,46 +1,51 @@
 ﻿NAME,VALUE
-// Do not remove first line
-//
-// game specific
+; Do not remove first line
+; game specific
 arduino-port,3
 millis-per-frame,16
 game-dim-x,600
 game-dim-y,600
 reset-pause-time,1.25
-//
-// Most values are in unit space coordinates
+; Most values are in unit space
 ball-radius,0.02
 ball-speed,0.5
 ball-speed-multiplier,1.05
-//
-// player
+; player
 player-dim-x,0.02
 player-dim-y,0.06
 player-offset-x,0.8
 player-speed,0.8
-//
-// points and scoring
+; colors
+; 10 = white
+; 11 = black (don't use)
+; 12 = red
+; 13 = orange
+; 14 = yellow
+; 15 = green
+; 16 = blue
+; 17 = purple
+player-1-color,12
+player-2-color,16
+wall-color,10
+ball-color,10
+; points and scoring
 points-to-win,5
 points-per-goal,1
-//
-// goals
-goal-offset-x,1.2
-goal-dim-x,0.1
-goal-dim-y,1
-//
-// walls
+; goals
+goal-offset-x,2
+goal-dim-x,0.9
+goal-dim-y,3
+; walls
 wall-dim-x,1
 wall-dim-y,0.075
 wall-offset-y,1
-//
-// spawn alternative wall layout
+; spawn alternative wall layout
 spawn-other-walls,1
 other-wall-dim-y,0.2
 other-wall-dim-x,0.075
 other-wall-offset-x,1
 other-wall-offset-y,0.8
-//
-// score display
+; score display
 text-offset-x,0.5
 text-offset-y,0.75
 text-dim-x,0.07

@@ -16,7 +16,7 @@ public:
 
         if (handle == INVALID_HANDLE_VALUE) {
             if (GetLastError() == ERROR_FILE_NOT_FOUND) {
-                std::cerr << "Port not found\n";
+                std::cerr << "Port " << portName << " not found\n";
                 return 0;
             }
             else {
