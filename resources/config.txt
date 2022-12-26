@@ -27,7 +27,7 @@ player-speed,0.8
 player-1-color,12
 player-2-color,16
 wall-color,10
-ball-color,10
+ball-color,15
 ; points and scoring
 points-to-win,5
 points-per-goal,1

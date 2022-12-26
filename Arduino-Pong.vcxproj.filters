@@ -105,8 +105,14 @@
     <Image Include="resources\textures\.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="static\gameplay.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="static\circuit-diagram.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\..\..\..\..\cpp-libs\glfw-3.3.2.bin.WIN64\lib\GLFW\glfw3dll.lib" />
+    <Library Include="..\..\..\..\..\..\cpp-libs\glfw-3.3.2\glfw\lib\GLFW\glfw3dll.lib" />
   </ItemGroup>
 </Project>
