@@ -11,7 +11,7 @@
 Below is a circuit diagram that includes one button for the Arduino controller. All resistors are 10k ohms. 5V power supply. 
 ![circuit-diagram](https://raw.githubusercontent.com/CosineDigital/Arduino-Pong/master/static/circuit-diagram.png)
 
-Below is the complete circuit diagram that includes all 5 buttons for the aruino controller.
+Below is the complete circuit diagram that includes all 5 buttons for the Arduino controller.
 Pins 13-9 are used for input. See [firmware.ino](https://github.com/CosineDigital/Arduino-Pong/blob/master/src/arduino/firmware/firmware.ino) for more information.
 ![circuit-diagram-large](https://raw.githubusercontent.com/CosineDigital/Arduino-Pong/master/static/circuit-diagram-large.png)
 
